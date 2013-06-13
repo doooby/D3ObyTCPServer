@@ -1,13 +1,13 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'D3ObyTCPServer/version'
+require 'D3ObyTCPServer/static.rb'
 
 Gem::Specification.new do |spec|
   spec.name          = "D3ObyTCPServer"
-  spec.version       = D3ObyTCPServer::VERSION
-  spec.authors       = ["TODO: Write your name"]
-  spec.email         = ["TODO: Write your email address"]
+  spec.version       = D3ObyTCPServer::Static
+  spec.authors       = ["doooby"]
+  spec.email         = ["zely.o@email.cz"]
   spec.description   = %q{TODO: Write a gem description}
   spec.summary       = %q{TODO: Write a gem summary}
   spec.homepage      = ""

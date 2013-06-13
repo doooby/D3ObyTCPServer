@@ -1,3 +1,0 @@
-class Rooms < Hash
-
-end
