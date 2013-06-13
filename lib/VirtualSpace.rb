@@ -37,7 +37,7 @@ class VirtualSpace
   def <<(socket)
     id = @next_connection_id
     @next_connection_id += 1
-    new_conn = Connection.new id, socket, self, &@server.method(:recieve)
+    new_conn = Connection.new id, socket, self, @server, &@server.method(:recieve)
     @server.puts "Connection (#{id}) added - #{@actual_count}/#{@max_connections}."
     @actual_count += 1
     @server.abort_listenning if @actual_count==@max_connections

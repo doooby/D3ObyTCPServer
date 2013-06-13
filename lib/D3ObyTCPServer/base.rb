@@ -1,5 +1,4 @@
 require 'socket'
-require 'version'
 
 class D30byTCPServer
 
@@ -20,7 +19,9 @@ class D30byTCPServer
   def start
     return if @started
     puts 'Starting D3ObyTCPServer'
-    @socket = TCPServer.new 'localhost', 8808
+    @ip = 'localhost'
+    @port = 151515
+    @socket = TCPServer.new @ip, @port
     @socket.setsockopt Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1
     @started = true
     listen_for_connections
