@@ -1,7 +1,7 @@
 class D3ObyTCPServer
   module Static
 
-    VERSION = "0.0.1"
+    VERSION = "0.0.2"
 
 
 

@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'D3ObyTCPServer/static'
 
 Gem::Specification.new do |spec|
-  spec.name          = "D3ObyTCPServer"
+  spec.name          = "d3oby_tcp_server"
   spec.version       = D3ObyTCPServer::Static::VERSION
   spec.authors       = ["doooby"]
   spec.email         = ["zely.o@email.cz"]
