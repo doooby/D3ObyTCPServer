@@ -1,5 +1,5 @@
 system 'clear'
-require_relative 'lib/d3oby_tcp_server'
+load "#{File.dirname(File.absolute_path __FILE__)}/lib/d3oby_tcp_server.rb"
 puts '############### načten zdrojový kód serveru D3ObyTCPServer #####################'
 
 puts '>> vytvářím instanci serveru'
