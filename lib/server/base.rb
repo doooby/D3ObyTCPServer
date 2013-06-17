@@ -1,6 +1,10 @@
 require 'socket'
+require_relative 'static'
+require_relative 'helper'
 
-class D30byTCPServer
+class D3ObyTCPServer
+  include D3ObyTCPServer::Static
+  include D3ObyTCPServer::Helper
 
   attr_reader :ip, :port
 

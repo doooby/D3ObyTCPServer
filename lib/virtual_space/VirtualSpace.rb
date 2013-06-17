@@ -3,7 +3,7 @@ class VirtualSpace
 
   def initialize(server, max=10)
     @server = server
-    @intr_ord = intr_ord
+    #@intr_ord = intr_ord
     @max_connections = max
     @actual_count = 0
     @next_connection_id = 1

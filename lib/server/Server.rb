@@ -1,9 +1,8 @@
 require 'socket'
 require 'thread'
+require_relative 'base'
 
 class D3ObyTCPServer
-  include D30byTCPServer::Static
-  include D30byTCPServer::Helper
 
   attr_accessor :connections, :rooms
 
