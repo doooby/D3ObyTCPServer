@@ -32,6 +32,17 @@ class VirtualSpace
     end
   end
 
+  def get_conn(id)
+    conn = @unauth_conns[id]
+    return conn unless conn.nil?
+    conn = @hosts[id]
+    return conn unless conn.nil?
+    @rooms.each_value do |room|
+      conn = room.get_conn id
+      return conn unless conn.nil?
+    end
+  end
+
   ######################################################################################################################
 
   def attach(socket)
@@ -39,7 +50,7 @@ class VirtualSpace
     @next_connection_id += 1
     new_conn = Connection.new id, socket, self, @server
     @actual_count += 1
-    @server.puts "Connection (#{id}) added - #{@actual_count}/#{@max_connections}."
+    puts "Connection (#{id}) added - #{@actual_count}/#{@max_connections}."
     @server.abort_listenning if @actual_count==@max_connections
     @unauth_conns[id] = new_conn
   end
@@ -67,7 +78,7 @@ class VirtualSpace
       end
     end
     conn.close
-    @server.puts "Connection (#{conn.id}) terminated for good - #{@actual_count}/#{@max_connections}"
+    puts "Connection (#{conn.id}) terminated for good - #{@actual_count}/#{@max_connections}"
     listen_for_connections if !@server.listenning && @actual_count<@max_connections
   end
 

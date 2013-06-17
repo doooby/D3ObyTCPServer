@@ -9,20 +9,17 @@ class D3ObyTCPServer
   attr_reader :ip, :port
 
   def initialize
-    @sout = $stdout
-    @serout = $stderr
-
     @started = false
 
     @socket = nil
     @listenning_thread = nil
 
-    @space = VirtualSpace.new 5
+    @space = VirtualSpace.new self, 5
   end
 
   def start
     return if @started
-    puts 'Starting D3ObyTCPServerggggggggggggggg'
+    puts 'Starting D3ObyTCPServer'
     @ip = 'localhost'
     @port = 151515
     @socket = TCPServer.new @ip, @port
@@ -45,14 +42,6 @@ class D3ObyTCPServer
     @started
   end
 
-  def puts(text)
-    @sout.puts text
-  end
-
-  def errputs(text)
-    @serout.puts text
-  end
-
   ######################################################################################################################
 
   def listen_for_connections
@@ -65,12 +54,12 @@ class D3ObyTCPServer
           begin
             new_conn = @socket.accept
           rescue Errno::EAGAIN, Errno::EWOULDBLOCK, Errno::ECONNABORTED, Errno::EPROTO, Errno::EINTR
-            errputs 'Incomming connection failed - skipping for next.' #IO.select([@socket])
+            puts 'Incomming connection failed - skipping for next.' #IO.select([@socket])
             retry
           rescue Exception => e
-            errputs "Fatal error for listenning server socket: #{e.message}."
+            puts "Fatal error for listenning server socket: #{e.message}."
             @listenning_thread = nil
-            #listen_for_connections
+            listen_for_connections
             Thread.current.kill
           end
           @space.attach new_conn

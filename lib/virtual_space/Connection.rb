@@ -1,6 +1,6 @@
 require 'socket'
 
-class Connection < TCPSocket
+class Connection
   attr_accessor :host, :key
   attr_reader :id, :thread, :connected_at
 
@@ -10,7 +10,7 @@ class Connection < TCPSocket
     @socket = socket
     @space = space
     @server = server
-    @callback = rec_callback.nil? ? server.method(:recieve) : rec_callback
+    @callback = rec_callback.nil? ? server.method(:receive) : rec_callback
     @authorized = false
     @host = -1
     @key = -1
@@ -33,7 +33,8 @@ class Connection < TCPSocket
   end
 
   def close
-    @socket.close unless @socket.nil? || @socked.closed?
+    @closing = true
+    @socket.close unless @socket.nil? || @socket.closed?
     return if Thread.current==@thread
     unless @thread.nil?
       @thread.kill unless @thread[:to_end]
@@ -41,7 +42,7 @@ class Connection < TCPSocket
     end
   end
 
-  def send(data)
+  def post(data)
     @socket.puts data
   end
 
@@ -59,17 +60,19 @@ class Connection < TCPSocket
           end
         rescue Exception => e
           Thread.current[:to_end] = true
-          @server.errputs "Unknown error #{e.class} while recieving (#{@id}): #{e.message}." unless e.class==IOError
-          @space.acknowledge_disconnection self
-          @socket.close unless @socket.nil? || @socket.closed?
+          unless @closing
+            $stderr.puts "Unknown error #{e.class} while recieving (#{@id}): #{e.message}." unless e.class==IOError
+            @space.disconnection_notice self
+            @socket.close unless @socket.nil? || @socket.closed?
+          end
         end
         break if Thread.current[:to_end]
-        $stdout.puts "recieved (#{@id}): >#{data}<"
+        puts "recieved (#{@id}): >#{data}<"
         next if @callback.nil?
         begin
           @callback.call self, data
         rescue Exception => e
-          @server.errputs "Error #{e.class} while invocing on_recieve call(#{@id}): #{e.message}\n#{e.backtrace.join("\t\n")}."
+          $stderr.puts "Error #{e.class} while invocing on_recieve call(#{@id}): #{e.message}\n#{e.backtrace.join("\t\n")}."
         end
       end
     end

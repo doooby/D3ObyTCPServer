@@ -3,8 +3,7 @@ require 'thread'
 require_relative 'base'
 
 class D3ObyTCPServer
-
-  attr_accessor :connections, :rooms
+  attr_reader :space
 
   def internal_order(order, conn=nil)
     #validace přikazujícího
@@ -19,7 +18,7 @@ class D3ObyTCPServer
     end
   end
 
-  def recieve(sc, data)
+  def receive(sc, data)
     puts "přečtěno (#{sc.id}) #{data}"
     ##---# délka a existence data
     #unless data =~ /^\[.*\]/

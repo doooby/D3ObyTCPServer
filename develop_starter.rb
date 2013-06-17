@@ -1,5 +1,5 @@
 system 'clear'
-load "#{File.dirname(File.absolute_path __FILE__)}/lib/d3oby_tcp_server.rb"
+require "#{File.dirname(File.absolute_path __FILE__)}/lib/d3oby_tcp_server.rb"
 puts '############### načten zdrojový kód serveru D3ObyTCPServer #####################'
 
 puts '>> vytvářím instanci serveru'
@@ -19,7 +19,12 @@ loop do
       break
     when 'send'
       if args.count==2 && args[0] =~ /^\d*$/
-        puts ">> odezva: #{server.send args[0].to_i, args[1]}"
+        conn = server.space.get_conn args[0].to_i
+        if conn.nil?
+          puts ">> #{args[0].to_i} není připojeno"
+        else
+          conn.post args[1]
+        end
       else
         puts '>> chyba příkazu: send <id> "<data/text>"'
       end
