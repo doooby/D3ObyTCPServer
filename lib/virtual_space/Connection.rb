@@ -2,7 +2,7 @@ require 'socket'
 
 class Connection < TCPSocket
   attr_accessor :host, :key
-  attr_reader :id, :connected_at
+  attr_reader :id, :thread, :connected_at
 
   def initialize(id, socket, space, server, &rec_callback)
     @id = id
@@ -10,7 +10,7 @@ class Connection < TCPSocket
     @socket = socket
     @space = space
     @server = server
-    @callback = rec_callback
+    @callback = rec_callback.nil? ? server.method(:recieve) : rec_callback
     @authorized = false
     @host = -1
     @key = -1
@@ -27,8 +27,9 @@ class Connection < TCPSocket
   end
 
   def reconnect(socket)
-    @socket = socket
-    listen
+    raise 'Not implemented yet'
+    #@socket = socket
+    #listen
   end
 
   def close

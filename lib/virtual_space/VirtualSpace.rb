@@ -13,7 +13,7 @@ class VirtualSpace
   end
 
   def close_all
-    each_char { |c| c.close }
+    each_conns { |c| c.close }
     @actual_count = 0
     @hosts = {}
     @rooms = {}
@@ -24,7 +24,7 @@ class VirtualSpace
     @actual_count
   end
 
-  def each_conn(&block)
+  def each_conns(&block)
     @unauth_conns.each_value {|c| block.call c}
     @hosts.each_value {|c| block.call c}
     @rooms.each_value do |room|
@@ -34,17 +34,17 @@ class VirtualSpace
 
   ######################################################################################################################
 
-  def <<(socket)
+  def attach(socket)
     id = @next_connection_id
     @next_connection_id += 1
-    new_conn = Connection.new id, socket, self, @server, &@server.method(:recieve)
-    @server.puts "Connection (#{id}) added - #{@actual_count}/#{@max_connections}."
+    new_conn = Connection.new id, socket, self, @server
     @actual_count += 1
+    @server.puts "Connection (#{id}) added - #{@actual_count}/#{@max_connections}."
     @server.abort_listenning if @actual_count==@max_connections
     @unauth_conns[id] = new_conn
   end
 
-  def >>(conn_id)
+  def dettach(conn_id)
     conn_id = conn_id.id unless conn_id.is_a? Fixnum
     conn = @unauth_conns.delete conn_id
     if conn.nil?
@@ -71,12 +71,12 @@ class VirtualSpace
     listen_for_connections if !@server.listenning && @actual_count<@max_connections
   end
 
-  def acknowledge_disconnection(conn)
-
+  def disconnection_notice(conn)
+    raise 'Not implemented yet'
   end
 
   def reconnect_request(key, conn)
-    false
+    raise 'Not implemented yet'
   end
 
 end
