@@ -27,7 +27,6 @@ class D3ObyTCPServer
     @port = 151515
     @socket = TCPServer.new @ip, @port
     @socket.setsockopt Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1
-    puts @socket==nil
     @started = true
     listen_for_connections
   end
