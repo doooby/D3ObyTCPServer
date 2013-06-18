@@ -13,7 +13,7 @@ class VirtualSpace
   end
 
   def close_all
-    each_conns { |c| c.close }
+    each_conn { |c| c.close }
     @actual_count = 0
     @hosts = {}
     @rooms = {}
@@ -24,12 +24,18 @@ class VirtualSpace
     @actual_count
   end
 
-  def each_conns(&block)
+  def each_conn(&block)
     @unauth_conns.each_value {|c| block.call c}
     @hosts.each_value {|c| block.call c}
     @rooms.each_value do |room|
       room.each_value {|c| block.call c}
     end
+  end
+
+  def every_other_conn_in_room(conn, &block)
+    room = @rooms[conn.host]
+    return if room.nil?
+    room.each_value {|c| block.call c unless c==conn}
   end
 
   def get_conn(id)
@@ -41,6 +47,10 @@ class VirtualSpace
       conn = room.get_conn id
       return conn unless conn.nil?
     end
+  end
+
+  def get_host(id)
+    @hosts[id]
   end
 
   ######################################################################################################################
@@ -86,7 +96,7 @@ class VirtualSpace
     raise 'Not implemented yet'
   end
 
-  def reconnect_request(key, conn)
+  def reconnect_request(proclaimed_key, conn)
     raise 'Not implemented yet'
   end
 

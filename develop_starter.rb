@@ -1,6 +1,6 @@
 system 'clear'
 require "#{File.dirname(File.absolute_path __FILE__)}/lib/d3oby_tcp_server.rb"
-puts '############### načten zdrojový kód serveru D3ObyTCPServer #####################'
+puts '############### načten zdrojový kód gemu d3oby_tcp_server ####################'
 
 puts '>> vytvářím instanci serveru'
 server = D3ObyTCPServer.new
@@ -14,7 +14,7 @@ loop do
   prikaz = args.shift
   case prikaz.downcase
     when 'exit'
-      puts '>> Vypínám server ##############################################################'
+      puts '>> Vypínám server ############################################################'
       server.stop
       break
     when 'send'

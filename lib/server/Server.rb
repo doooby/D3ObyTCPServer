@@ -18,143 +18,99 @@ class D3ObyTCPServer
     end
   end
 
-  def receive(sc, data)
-    puts "přečtěno (#{sc.id}) #{data}"
-    ##---# délka a existence data
-    #unless data =~ /^\[.*\]/
-    #  #NEVALIDNÍ ZPRÁVA
-    #  sc.puts '[msg-invalid]'
-    #  return
-    #end
-    #                                     #---# hlavička data
-    #head = data.slice!(/\[.*\]/)[1..-2]
-    #if head=='|'
-    #  #HLAVIČKA NENÍ VALIDNÍ
-    #  sc.puts '[head-invalid]'
-    #  return
-    #end
-    #response = data.slice!(0)=='?'       # přidat result a případně odesílat
-    #if head =~ /^n/
-    #  #NEW CONNECTION AUTHENTIZATION REQUEST
-    #  if head == 'nh'
-    #    sc.key = access_key
-    #    @rooms[sc.id] = []
-    #    sc.host = 0
-    #    sc.puts "[id-auth]#{sc.id},#{sc.key}"
-    #  elsif head =~ /^ng\d+/
-    #    sc.key = access_key
-    #    room = @room[ head.slice(/\d+/)]
-    #    if room.nil?
-    #      #MÍSTNOST NEEXISTUJE
-    #      sc.puts '[room-invalid]'
-    #      return
-    #    end
-    #    room << sc.id
-    #    sc.host = room
-    #    sc.puts "[id-auth]#{sc.id},#{sc.key}"
-    #  else
-    #    #NEW CONNECTION REQUEST INVALID
-    #    sc.puts '[head-invalid]'
-    #  end
-    #  return
-    #end
-    #sender,recievers = head.split '|'
-    #                                     #---# validace odesílatele
-    #claimed_id = sender.slice!(/^\d*/).to_i
-    #if claimed_id!=0 && claimed_id!=sc.id
-    #  #IDENTIFIKACE NENÍ VALIDNÍ
-    #  sc.puts '[id-invalid]'
-    #  return
-    #end
-    #type = sender.slice! 0
-    #unless typ =~ /^(g|h)$/
-    #  #PŘÍCHOZÍ NEUDAL SVOJI ROLI
-    #  sc.puts '[head-invalid]'
-    #  return
-    #end
-    #pass_key = nil
-    #pass_key = sender if sender =~ /^([a-f]|\d){4}$/
-    #if pass_key.nil? && claimed_id==0
-    #  #IDENTIFIKACE NENÍ VALIDNÍ
-    #  sc.puts '[id-invalid]'
-    #end
-    #if claimed_id==0
-    #  conn = nil
-    #  @connections.each_value do |c|
-    #    if c.key==pass_key
-    #      conn=c
-    #      break
-    #    end
-    #  end
-    #  if conn.nil?
-    #    #IDENTIFIKACE NENÍ VALIDNÍ
-    #    sc.puts '[id-invalid]'
-    #    return
-    #  else
-    #    #IDENTIFIKOVAT PODLE conn
-    #    return
-    #  end
-    #end
-    #conn = sc
-    #if conn.key!=pass_key
-    #  #IDENTIFIKACE NENÍ VALIDNÍ
-    #  sc.puts '[id-invalid]'
-    #  return
-    #end
-    #                                     #---# validace řetězce příjemců
-    #if recievers.empty? || recievers=='s'
-    #  #INTERNÍ PŘÍKAZ
-    #  internal_order data, conn
-    #  return
-    #end
-    #if recievers =~ /^[\d+,]+$/
-    #  #ODESLÁNÍ NA ZADANÉ ID
-    #  recievers.split(',').each do |id|
-    #    conn_to = @connections[id]
-    #    next if conn_to.nil? || conn_to==conn
-    #    conn_to.puts(data)
-    #  end
-    #  return
-    #elsif recievers =~ /^a[-+]?$/
-    #  case recievers.slice 1
-    #    when nil
-    #      #ODESLÁNÍ VŠEM
-    #      @connections.each_value do |c|
-    #        next if c==conn
-    #        c.puts data
-    #      end
-    #      return
-    #    when '+'
-    #      #ODESLÁNÍ HOSTOVI MÍSTNOSTI
-    #      host = conn.host
-    #      unless host.nil? || host==0
-    #        host_conn = @connections[host]
-    #        host_conn.puts data unless host_conn.nil?
-    #        return
-    #      end
-    #    when '-'
-    #      #ODESLÁNÍ VŠEM V MÍSTNOSTI (MIMO HOSTA)
-    #      host = conn.host
-    #      unless host.nil? || host==0
-    #        @rooms[host].each do |c|
-    #          c.puts data
-    #        end
-    #        return
-    #      end
-    #  end
-    #else
-    #  #CHYBA V ZADÁNÍ PŘÍJEMCŮ
-    #  sc.puts '[head-invalid]'
-    #  return
-    #end
-    #                                     #CHYBA VE ZPRACOVÁNÍ ZPRÁVY - NIC SE NEPROVEDLO
-    #sc.puts '[msg-invalid]'
+  def err_response(sc, data, err, msg=nil)
+    sc.puts err
   end
 
-
-
-
-
-
+  def receive(sc, data)
+    #####
+    ####### délka a konzistence data
+    #####
+    unless data=~/^\[.*\]/
+      err_response sc, data, RESP_MSG_INVALID
+      return
+    end
+    body = data
+    head = body.slice!(/^\[[^\]]\]/)[1..-2]
+    if head=='|'
+      err_response sc, data, RESP_HEAD_INVALID
+      return
+    end
+    #####
+    ####### žádost o přítup?
+    #####
+    if head.empty?
+      #volný přístup
+      raise 'Not implemented yet'
+    elsif head=='h'
+      #přístup jako host
+      raise 'Not implemented yet'
+    elsif head=='r'
+      #žádost o obnovení spojení
+      raise 'Not implemented yet'
+    elsif head=~/^g(\d+)$/
+      #přístup jako guest do místnosti $1
+      raise 'Not implemented yet'
+    end
+    #####
+    ####### kdo a komu
+    #####
+    sender,receiver = head.split '|'
+    #sender
+    sender_valid = true
+    sender_valid = false unless sender=~/^(\d+)(|(h|g)[a-f\d]{4})$/
+    unless $1.to_i==sc.id &&sender_valid
+      err_response sc, data, RESP_ID_INVALID
+      return
+    end
+    $2.match /^(|h|g)([a-f\d]{4})$/
+    sender_valid = true
+    if $1.empty?
+      sender_valid = false unless sc.host==-1
+    elsif $1=='h'
+      sender_valid = false unless sc.host==0
+    elsif $1=='g'
+      sender_valid = false unless sc.host>0
+    end
+    unless sender_valid
+      err_response sc, data, RESP_ID_INVALID
+      return
+    end
+    if sc.authorized?
+      # TODO časové omezení autorizace
+    else
+      unless sc.authorize! $2
+        err_response sc, data, RESP_ID_AUTHORIZE
+        return
+      end
+    end
+    #receiver
+    unless receiver=~/^(|s|\d+(,\d+)*|a[+-]?)$/
+      err_response sc, data, RESP_HEAD_INVALID
+      return
+    end
+    #####
+    ####### vyřízení zprávy
+    #####
+    if receiver.empty? || receiver=='s'
+      internal_order body, conn
+    elsif receiver=~/^a(|\+|-)$/
+      if $1.empty?
+        @space.each_conn {|c| c.post body}
+      elsif $1=='+'
+        host = @space.get_host(sc.host)
+        host.post body unless host.nil?
+      elsif $1=='-'
+        @space.every_other_conn_in_room sc {|c| c.post body}
+      end
+    else
+      ids = $1.split(',').map{|id| id.to_i}
+      ids.each do |id|
+        conn = @space.get_conn id
+        next if conn.nil?
+        conn.post body
+      end
+    end
+  end
 
 end

@@ -14,7 +14,7 @@ class D3ObyTCPServer
     RESP_HEAD_INVALID = '[head-invalid]'
     RESP_ROOM_INVALID = '[room-invalid]'
     RESP_ID_INVALID = '[id-invalid]'
-    RESP_ID_AUTHENTIFICATION= '[id-auth]'
+    RESP_ID_AUTHORIZE= '[id-auth]'
 
   end
 end

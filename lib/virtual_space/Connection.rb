@@ -1,7 +1,7 @@
 require 'socket'
 
 class Connection
-  attr_accessor :host, :key
+  attr_accessor :host
   attr_reader :id, :thread, :connected_at
 
   def initialize(id, socket, space, server, &rec_callback)
@@ -15,6 +15,16 @@ class Connection
     @host = -1
     @key = -1
     listen
+  end
+
+  def authorize!(proclaimed_key)
+    if proclaimed_key==key
+      @authorized = true
+      true
+    else
+      @authorized = false
+      false
+    end
   end
 
   def authorized?
@@ -68,7 +78,6 @@ class Connection
         end
         break if Thread.current[:to_end]
         puts "recieved (#{@id}): >#{data}<"
-        next if @callback.nil?
         begin
           @callback.call self, data
         rescue Exception => e
