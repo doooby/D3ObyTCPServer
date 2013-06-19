@@ -5,16 +5,20 @@ class D3ObyTCPServer
 
 
 
-    ERR_ID_NOT_CONNECTED = 5
-    ERR_SEND_FAIL = 6
 
-    ERR_MSG_BAD_FORM = 10
 
+    ####################################
+    # R E S P O N S E S ################
     RESP_MSG_INVALID = '[msg-invalid]'
+    RESP_MSG_FAIL = '[msg-fail]'
+    RESP_MSG_SERVED = '[msg-serverd]'
     RESP_HEAD_INVALID = '[head-invalid]'
     RESP_ROOM_INVALID = '[room-invalid]'
     RESP_ID_INVALID = '[id-invalid]'
     RESP_ID_AUTHORIZE= '[id-auth]'
+    RESP_ACC_GRANTED = '[acs-granted]'
+    RESP_ACC_DENIED = '[acs-denied]'
+    ###################################
 
   end
 end

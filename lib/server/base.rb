@@ -8,13 +8,18 @@ class D3ObyTCPServer
 
   attr_reader :ip, :port
 
-  def initialize
+  def initialize(**args)
     @started = false
 
     @socket = nil
     @listenning_thread = nil
 
     @space = VirtualSpace.new self, 5
+    set_up args unless args.nil?
+  end
+
+  def set_up(**args)
+    raise 'Not implemented yet'
   end
 
   def start

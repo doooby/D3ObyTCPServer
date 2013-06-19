@@ -32,7 +32,7 @@ class VirtualSpace
     end
   end
 
-  def every_other_conn_in_room(conn, &block)
+  def other_conns_in_room(conn, &block)
     room = @rooms[conn.host]
     return if room.nil?
     room.each_value {|c| block.call c unless c==conn}

@@ -18,7 +18,7 @@ class Connection
   end
 
   def authorize!(proclaimed_key)
-    if proclaimed_key==key
+    if proclaimed_key==@key
       @authorized = true
       true
     else
@@ -77,7 +77,6 @@ class Connection
           end
         end
         break if Thread.current[:to_end]
-        puts "recieved (#{@id}): >#{data}<"
         begin
           @callback.call self, data
         rescue Exception => e
