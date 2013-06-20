@@ -10,16 +10,21 @@ class D3ObyTCPServer
 
   def initialize(**args)
     @started = false
-
     @socket = nil
     @listenning_thread = nil
-
     @space = VirtualSpace.new self, 5
-    set_up args unless args.nil?
+    set_up args
   end
 
   def set_up(**args)
-    raise 'Not implemented yet'
+
+    ### možnost přístupu trampů
+    @tramp_access_trier = args[:tramp_access_trier]
+    unless @tramp_access_trier.nil?
+      raise 'err in set_up: tramp_access_treir is not AccessTrier class nor nil' unless @tramp_access_trier.is_a?(AccessTrier)
+    end
+
+
   end
 
   def start

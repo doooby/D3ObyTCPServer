@@ -30,7 +30,11 @@ class D3ObyTCPServer
   end
 
   def access_tramp(sc, data)
-    raise 'Not implemented yet'
+    if @tramp_access_trier.nil?
+      false
+    else
+      @tramp_access_trier.access sc, data
+    end
   end
 
   def access_guest(sc, host, data)
@@ -61,32 +65,37 @@ class D3ObyTCPServer
     #####
     ####### žádost o přítup?
     #####
-    if head.empty?
-      if access_tramp(sc, data)
-        succes_response(sc, orig_head, RESP_ACC_GRANTED)
+    if head.empty? #tramp
+      try_result, msg = access_tramp(sc, data)
+      if try_result
+        sc.authorize! -1
+        succes_response sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}"
       else
-        err_response(sc, orig_head, RESP_ACC_DENIED)
+        err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
       end
       return
-    elsif head=='h'
-      if access_host(sc, data)
-        succes_response(sc, orig_head, RESP_ACC_GRANTED)
+    elsif head=='h' #host
+      try_result, msg = access_host(sc, data)
+      if try_result
+        raise 'Not implemented yet'
+        #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
       else
-        err_response(sc, orig_head, RESP_ACC_DENIED)
+        err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
       end
       return
-    elsif head=='r'
-      #žádost o obnovení spojení
+    elsif head=='r' #reconnection
       raise 'Not implemented yet'
-    elsif head=~/^g(\d+)$/
+    elsif head=~/^g(\d+)$/ #guest
       if $1.empty?
         err_response sc, orig_head, RESP_HEAD_INVALID
         return
       else
-        if access_guest(sc, $1.to_i, data)
-          succes_response(sc, orig_head, RESP_ACC_GRANTED)
+        try_result, msg = access_guest(sc, $1.to_i, data)
+        if try_result
+          raise 'Not implemented yet'
+          #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
         else
-          err_response(sc, orig_head, RESP_ACC_DENIED)
+          err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
         end
         return
       end

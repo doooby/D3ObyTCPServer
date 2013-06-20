@@ -1,9 +1,11 @@
 system 'clear'
-require "#{File.dirname(File.absolute_path __FILE__)}/lib/d3oby_tcp_server.rb"
+require "#{Dir.getwd}/lib/d3oby_tcp_server.rb"
 puts '############### načten zdrojový kód gemu d3oby_tcp_server ####################'
 
 puts '>> vytvářím instanci serveru'
-server = D3ObyTCPServer.new
+server = D3ObyTCPServer.new(
+    tramp_access_trier: StandartTrampAccessTrier.new
+)
 server.start
 
 #server.block_process_for_server

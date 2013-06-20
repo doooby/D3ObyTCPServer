@@ -1,7 +1,7 @@
 require 'socket'
 
 class Connection
-  attr_accessor :host
+  attr_accessor :host, :key
   attr_reader :id, :thread, :connected_at
 
   def initialize(id, socket, space, server, &rec_callback)
