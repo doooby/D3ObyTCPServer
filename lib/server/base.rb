@@ -42,7 +42,7 @@ class D3ObyTCPServer
     return unless @started
     @listenning_thread.kill if @listenning_thread.alive?
     @space.close_all
-    @socket.close
+    @socket.kill
     @listenning_thread.join if @listenning_thread.alive?
     @listenning_thread = nil
     @started = false
@@ -84,7 +84,7 @@ class D3ObyTCPServer
   end
 
   def listenning
-    !@listenning_thread.nil? && @listenning_thread[:to_wait]
+    !@listenning_thread.nil? && !@listenning_thread[:to_wait]
   end
 
   def abort_listenning

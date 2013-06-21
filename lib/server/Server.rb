@@ -6,27 +6,44 @@ class D3ObyTCPServer
   attr_reader :space
 
   def internal_order(order, conn=nil)
-    #validace přikazujícího
-    if !conn.nil? && true #(pozdeji skutečně validovat)
-                          #PŘIPOJENÍ NEMÁ OPRÁVNĚNÍ PŘIKAZOVAT SERVERU
-      return
-    end
-    case order
-      when ''
+    puts "\tINTERNAL ORDER: #{order}"
+
+    #---------------------------------
+    if order.match /^kill_conn (\d*)$/
+      who = $1.to_i
+      if conn.nil?
+        raise 'Not implemented yet IN Server#internal_order - kill_conn - without conn'
       else
-        puts " > INTERNAL ORDER: #{order}"
+        if who==conn.id
+          @space.dettach conn.id
+          true
+        elsif conn.host==0
+          if @space.get_room(conn.id).has_guest(who.id)
+            @space.dettach who.id
+            true
+          else
+            false
+          end
+        else
+          false
+        end
+      end
+    #---------------------------------
+    elsif true
+      false
     end
+
   end
 
   def err_response(sc, head, err, msg=nil)
     sc.post err
     puts "\terr: #{err}"
-    $stderr.puts "Error #{e.class} while servering (#{sc.id}) message >#{head}<: #{e.message}\n#{e.backtrace.join("\t\n")}." if msg.is_a? Exception
+    $stderr.puts "Error #{msg.class} while servering (#{sc.id}) message >#{head}<: #{msg.message}\n#{msg.backtrace.join("\t\n")}." if msg.is_a? Exception
   end
 
   def succes_response(sc, head, scs, msg=nil)
     sc.post scs
-    puts "\tscs: #{scs}"
+    puts "\tsuccess: #{scs}"
   end
 
   def access_tramp(sc, data)
@@ -38,11 +55,11 @@ class D3ObyTCPServer
   end
 
   def access_guest(sc, host, data)
-    raise 'Not implemented yet'
+    raise 'Not implemented yet IN Server#access_guest'
   end
 
   def access_host(sc,data)
-    raise 'Not implemented yet'
+    raise 'Not implemented yet IN Server#access_host'
   end
 
   def receive(sc, data)
@@ -77,14 +94,14 @@ class D3ObyTCPServer
     elsif head=='h' #host
       try_result, msg = access_host(sc, data)
       if try_result
-        raise 'Not implemented yet'
+        raise 'Not implemented yet IN Server#receive #1'
         #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
       else
         err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
       end
       return
     elsif head=='r' #reconnection
-      raise 'Not implemented yet'
+      raise 'Not implemented yet IN Server#receive #2'
     elsif head=~/^g(\d+)$/ #guest
       if $1.empty?
         err_response sc, orig_head, RESP_HEAD_INVALID
@@ -92,7 +109,7 @@ class D3ObyTCPServer
       else
         try_result, msg = access_guest(sc, $1.to_i, data)
         if try_result
-          raise 'Not implemented yet'
+          raise 'Not implemented yet IN Server#receive #3'
           #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
         else
           err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
@@ -133,7 +150,8 @@ class D3ObyTCPServer
       end
     end
     #receiver
-    unless receiver=~/^(|s|\d+(,\d+)*|a[+-]?)$/
+    receiver = 's' if receiver.nil? || receiver.empty?
+    unless receiver=~/^(s|\d+(,\d+)*|a[+-]?)$/
       err_response sc, orig_head, RESP_HEAD_INVALID
       return
     end
@@ -141,23 +159,29 @@ class D3ObyTCPServer
     ####### vyřízení zprávy
     #####
     begin
-      if receiver.empty? || receiver=='s'
-        internal_order(body, conn)
+      resp_data = "#{RESP_MSG_FROM}[#{sc.id}|#{sc.host}]#{data}"
+      if receiver=='s'
+        if internal_order(data, sc)
+          return
+        else
+          err_response sc, orig_head, RESP_ORDER_FORBIDDEN
+          return
+        end
       elsif receiver=~/^a(|\+|-)$/
         if $1.empty?
-          @space.each_conn {|c| c.post body}
+          @space.each_conn {|c| c.post resp_data}
         elsif $1=='+'
           host = @space.get_host(sc.host)
-          host.post body unless host.nil?
+          host.post resp_data unless host.nil?
         elsif $1=='-'
-          @space.other_conns_in_room sc {|c| c.post body}
+          @space.other_conns_in_room sc {|c| c.post resp_data}
         end
       else
-        ids = $1.split(',').map{|id| id.to_i}
+        ids = receiver.split(',').map{|id| id.to_i}
         ids.each do |id|
           conn = @space.get_conn id
           next if conn.nil?
-          conn.post body
+          conn.post resp_data
         end
       end
       succes_response sc, orig_head, RESP_MSG_SERVED

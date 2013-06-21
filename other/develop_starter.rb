@@ -11,7 +11,9 @@ server.start
 #server.block_process_for_server
 require 'shellwords'
 loop do
-  input = gets.strip
+  input = gets
+  break if input.nil?
+  input.strip!
   args = Shellwords.shellwords input
   prikaz = args.shift
   case prikaz.downcase

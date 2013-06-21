@@ -37,12 +37,12 @@ class Connection
   end
 
   def reconnect(socket)
-    raise 'Not implemented yet'
+    raise 'Not implemented yet IN Connection#reconnect'
     #@socket = socket
     #listen
   end
 
-  def close
+  def dettach
     @closing = true
     @socket.close unless @socket.nil? || @socket.closed?
     return if Thread.current==@thread
@@ -53,7 +53,7 @@ class Connection
   end
 
   def post(data)
-    @socket.puts data
+    @socket.puts data unless @closing
   end
 
   def listen
@@ -64,7 +64,7 @@ class Connection
           data = @socket.gets
           if data.nil?
             Thread.current[:to_end] = true
-            @space.acknowledge_disconnection self
+            @space.disconnection_notice self
           else
             data.slice! -1
           end
