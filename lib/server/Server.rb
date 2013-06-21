@@ -95,12 +95,14 @@ class D3ObyTCPServer
       try_result, msg = access_host(sc, data)
       if try_result
         raise 'Not implemented yet IN Server#receive #1'
+        #TODO access as host
         #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
       else
         err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
       end
       return
     elsif head=='r' #reconnection
+      #TODO reconnection proccess
       raise 'Not implemented yet IN Server#receive #2'
     elsif head=~/^g(\d+)$/ #guest
       if $1.empty?
@@ -109,6 +111,7 @@ class D3ObyTCPServer
       else
         try_result, msg = access_guest(sc, $1.to_i, data)
         if try_result
+          #TODO access as guest
           raise 'Not implemented yet IN Server#receive #3'
           #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
         else

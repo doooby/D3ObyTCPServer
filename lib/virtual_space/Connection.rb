@@ -2,7 +2,7 @@ require 'socket'
 
 class Connection
   attr_accessor :host, :key
-  attr_reader :id, :thread, :connected_at
+  attr_reader :id, :connected_at
 
   def initialize(id, socket, space, server, &rec_callback)
     @id = id
@@ -53,7 +53,7 @@ class Connection
   end
 
   def post(data)
-    @socket.puts data unless @closing
+    @socket.puts data unless @closing || !@authorized
   end
 
   def listen
