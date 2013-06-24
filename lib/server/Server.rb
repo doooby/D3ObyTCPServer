@@ -47,11 +47,8 @@ class D3ObyTCPServer
   end
 
   def access_tramp(sc, data)
-    if @tramp_access_trier.nil?
-      false
-    else
-      @tramp_access_trier.access sc, data
-    end
+    false unless can_tramp_access?
+    @tramp_access_trier.access sc, data
   end
 
   def access_guest(sc, host, data)
@@ -162,30 +159,38 @@ class D3ObyTCPServer
     ####### vyřízení zprávy
     #####
     begin
-      resp_data = "#{RESP_MSG_FROM}[#{sc.id}|#{sc.host}]#{data}"
-      if receiver=='s'
-        if internal_order(data, sc)
-          return
+      case receiver
+        when 's'
+          if internal_order(data, sc)
+            return
+          else
+            err_response sc, orig_head, RESP_ORDER_FORBIDDEN
+            return
+          end
+        when 'h'
+          @space.get_room(sc.host).host.post "[#{sc.id}]#{data}"
+        when 'o'
+          resp = "[#{sc.id}]#{data}"
+          @space.get_room(sc.host).each_guest do |g|
+            next if g==sc
+            g.post resp
+          end
+        when 'a'
+          resp = "[#{sc.id}|#{sc.host}]#{data}"
+          if can_over_room_reachability?
+            @space.each_conn {|c| c.post resp}
+          else
+            @space.each_tramp {|c| c.post resp}
+          end
         else
-          err_response sc, orig_head, RESP_ORDER_FORBIDDEN
-          return
-        end
-      elsif receiver=~/^a(|\+|-)$/
-        if $1.empty?
-          @space.each_conn {|c| c.post resp_data}
-        elsif $1=='+'
-          host = @space.get_host(sc.host)
-          host.post resp_data unless host.nil?
-        elsif $1=='-'
-          @space.other_conns_in_room sc {|c| c.post resp_data}
-        end
-      else
-        ids = receiver.split(',').map{|id| id.to_i}
-        ids.each do |id|
-          conn = @space.get_conn id
-          next if conn.nil?
-          conn.post resp_data
-        end
+          ids = receiver.split(',').map{|id| id.to_i}
+          resp = "[#{sc.id}|#{sc.host}]#{data}"
+          ids.each do |id|
+            conn = @space.get_conn id
+            next if conn.nil?
+            next if !can_over_room_reachability? && conn.host!=-1 && conn.host!=sc.host
+            conn.post resp
+          end
       end
       succes_response sc, orig_head, RESP_MSG_SERVED
     rescue Exception => e

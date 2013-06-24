@@ -38,6 +38,7 @@ class Klient
   end
 
   def listen
+
     @listener = Thread.new do
       Thread.current[:to_end] = false
       until Thread.current[:to_end]
@@ -54,19 +55,24 @@ class Klient
           @soc.close unless @soc.nil? || @soc.closed?
         end
         break if Thread.current[:to_end]
-        begin
-          data.match /(\[[^\]]*\])(\[[^\]]*\])?(.+)/
-          if $1 == '[msg-from]'
-            puts "zpráva (#{$2}): >#{$3}<\n"
-          else
-            @waiting_resp = false
-            @last_response = data
-          end
-        rescue Exception => e
-          $stderr.puts "Error #{e.class} while proccess received >#{data}<: #{e.message}\n#{e.backtrace.join("\t\n")}."
-        end
+
+        #begin
+        #
+        #  data.match /(\[[]*\])?(.+)/
+        #  if $1 == '[msg-from]'
+        #    puts "zpráva (#{$1}): >#{$2}<\n"
+        #  else
+        #    @waiting_resp = false
+        #    @last_response = data
+        #  end
+        #rescue Exception => e
+        #  $stderr.puts "Error #{e.class} while proccess received >#{data}<: #{e.message}\n#{e.backtrace.join("\t\n")}."
+        #end
+        break
+
       end
     end
+    raise 'nedodělaný regexp'
   end
 
   def post(data, to_who=nil)

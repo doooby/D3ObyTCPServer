@@ -1,26 +1,35 @@
 class Room
+  attr_reader :host
 
-  def initialize
+  def initialize(host, access_trier)
+    @host = host
     @guests = {}
+    @access_trier = access_trier
   end
 
   def has_guest(id)
     @guests.has_key? id
   end
 
-  def get_conn(id)
-    raise 'Not implemented yet IN Room#get_conn'
+  def get_guest(id)
+    @guests[:id]
   end
 
-  def each_conn(&block)
-    raise 'Not implemented yet IN Room#each_conn'
+  def each_guest(&block)
+    @guests.each_value {|g| block.call g}
+  end
+
+  def guests_count
+    @guests.length
   end
 
   def dettach(who)
     if who.is_a? Fixnum
       g = @guests[who]
-      g.dettach unless g.nil?
-      1
+      unless g.nil?
+        g.dettach
+        1
+      end
     elsif who.is_a? Array
       detached = 0
       who.each do |id|
@@ -35,8 +44,12 @@ class Room
       detached = @guests.length
       @guests.each_value {|g| g.dettach}
       detached
-    else 
-      0
     end
+    0
+  end
+
+  def close
+    dettach true
+    @host.dettach
   end
 end

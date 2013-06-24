@@ -17,12 +17,16 @@ class D3ObyTCPServer
   end
 
   def set_up(**args)
+    @sett = 0b0
 
     ### možnost přístupu trampů
     @tramp_access_trier = args[:tramp_access_trier]
     unless @tramp_access_trier.nil?
       raise 'err in set_up: tramp_access_treir is not AccessTrier class nor nil' unless @tramp_access_trier.is_a?(AccessTrier)
+      @sett|=SET_TRAMP_ACCESS
     end
+    ## možnost posílat zprávy napříč místnostmi
+    @set|=SET_OVER_ROOM_REACHABILITY  unless args[:over_room_reachability]
 
 
   end
@@ -89,6 +93,15 @@ class D3ObyTCPServer
 
   def abort_listenning
     @listenning_thread[:to_wait] = true
+  end
+
+  ######################################################################################################################
+
+  def can_over_room_reachability?
+    @sett&SET_OVER_ROOM_REACHABILITY > 0
+  end
+  def can_tramp_access?
+    @sett&SET_TRAMP_ACCESS > 0
   end
 
 end
