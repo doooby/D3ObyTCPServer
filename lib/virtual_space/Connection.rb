@@ -1,20 +1,22 @@
 require 'socket'
 
 class Connection
-  attr_accessor :host, :key
-  attr_reader :id, :connected_at
+  attr_accessor :id, :host, :key, :room
+  attr_reader :connected_at
 
-  def initialize(id, socket, space, server, &rec_callback)
+  def initialize(id, server, socket)
     @id = id
-    @connected_at = Time.now
-    @socket = socket
-    @space = space
-    @server = server
-    @callback = rec_callback.nil? ? server.method(:receive) : rec_callback
-    @authorized = false
     @host = -1
     @key = -1
+    @connected_at = Time.now
+    @socket = socket
+    @server = server
+    @authorized = false
     listen
+  end
+
+  def info
+    "#{'%3s'%@id}: h=#{'%3s'%@host} | key=#{'%8s'%@key} | auth=#{authorized? ? 1 : 0} | at=#{@connected_at.strftime '%H:%M:%S'}"
   end
 
   def authorize!(proclaimed_key)
@@ -64,7 +66,7 @@ class Connection
           data = @socket.gets
           if data.nil?
             Thread.current[:to_end] = true
-            @space.disconnection_notice self
+            @server.space.disconnection_notice self
           else
             data.slice! -1
           end
@@ -72,13 +74,13 @@ class Connection
           Thread.current[:to_end] = true
           unless @closing
             $stderr.puts "Unknown error #{e.class} while recieving (#{@id}): #{e.message}." unless e.class==IOError
-            @space.disconnection_notice self
+            @server.space.disconnection_notice self
             @socket.close unless @socket.nil? || @socket.closed?
           end
         end
         break if Thread.current[:to_end]
         begin
-          @callback.call self, data
+          @server.receive self, data
         rescue Exception => e
           $stderr.puts "Error #{e.class} while invocing on_recieve call(#{@id}): #{e.message}\n#{e.backtrace.join("\t\n")}."
         end

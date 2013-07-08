@@ -18,52 +18,38 @@ class D3ObyTCPServer
           @space.dettach conn.id
           true
         elsif conn.host==0
-          if @space.get_room(conn.id).has_guest(who.id)
+          if conn.room.guest? who.id
             @space.dettach who.id
             true
           else
-            false
+            return false, "cannot kill guest when you are not hosting"
           end
         else
-          false
+          return false, "cannot kill others (only if you are guests)"
         end
       end
     #---------------------------------
     elsif true
-      false
+      return false, 'unknown command'
     end
 
   end
 
-  def err_response(sc, head, err, msg=nil)
+  def err_response(sc, head, err)
     sc.post err
     puts "\terr: #{err}"
-    $stderr.puts "Error #{msg.class} while servering (#{sc.id}) message >#{head}<: #{msg.message}\n#{msg.backtrace.join("\t\n")}." if msg.is_a? Exception
   end
 
-  def succes_response(sc, head, scs, msg=nil)
+  def succes_response(sc, head, scs)
     sc.post scs
     puts "\tsuccess: #{scs}"
-  end
-
-  def access_tramp(sc, data)
-    false unless can_tramp_access?
-    @tramp_access_trier.access sc, data
-  end
-
-  def access_guest(sc, host, data)
-    raise 'Not implemented yet IN Server#access_guest'
-  end
-
-  def access_host(sc,data)
-    raise 'Not implemented yet IN Server#access_host'
   end
 
   def receive(sc, data)
     #####
     ####### délka a konzistence data
     #####
-    puts "IN: receive, sc: #{sc.id}, data: >#{data}<"
+    puts ">> RECEIVE sc: #{sc.id}, data: >#{data}<"
     unless data=~/^\[([^\]]*)\]/
       err_response sc, data, RESP_MSG_INVALID
       return
@@ -79,8 +65,10 @@ class D3ObyTCPServer
     #####
     ####### žádost o přítup?
     #####
+    #TODO přeřazení, tj. již jednou udělen přístup, snaha o změnu pozice
     if head.empty? #tramp
-      try_result, msg = access_tramp(sc, data)
+      try_result, msg = false, ''
+      try_result, msg = @tramp_access_trier.access sc, data if can_tramp_access?
       if try_result
         sc.authorize! -1
         succes_response sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}"
@@ -89,31 +77,40 @@ class D3ObyTCPServer
       end
       return
     elsif head=='h' #host
-      try_result, msg = access_host(sc, data)
+      try_result, msg = false, ''
+      try_result, msg = @host_access_trier.access sc, data if can_host_access?
       if try_result
-        raise 'Not implemented yet IN Server#receive #1'
-        #TODO access as host
-        #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
+        sc.key = generate_access_key
+        sc.authorize! sc.key
+        sc.room = Room.new sc, @guest_access_trier
+        @space.regrade sc, 'h'
+        succes_response sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}"
       else
         err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
       end
       return
     elsif head=='r' #reconnection
-      #TODO reconnection proccess
+      #TODO reconnection process
       raise 'Not implemented yet IN Server#receive #2'
     elsif head=~/^g(\d+)$/ #guest
       if $1.empty?
         err_response sc, orig_head, RESP_HEAD_INVALID
         return
       else
-        try_result, msg = access_guest(sc, $1.to_i, data)
-        if try_result
-          #TODO access as guest
-          raise 'Not implemented yet IN Server#receive #3'
-          #succes_response(sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}")
-        else
-          err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
+        room = @space.get_room $1.to_i
+        msg = nil
+        unless room.nil?
+          try_result, msg = room.access_trier.access sc, data
+          if try_result
+            sc.key = generate_access_key
+            sc.authorize! sc.key
+            @space.regrade sc, 'g', room
+            #TODO access as guest
+            succes_response sc, orig_head, "#{RESP_ACC_GRANTED}#{sc.id}|#{sc.key}"
+            return
+          end
         end
+        err_response sc, orig_head, "#{RESP_ACC_DENIED}#{msg}"
         return
       end
     end
@@ -124,7 +121,7 @@ class D3ObyTCPServer
     puts "\tsender: >#{sender}<, receiver: >#{receiver}<"
     #sender
     sender_valid = true
-    sender_valid = false unless sender=~/^(\d+)(|h|g)([a-f\d]{4})?$/
+    sender_valid = false unless sender=~/^(\d+)([gh]?)([a-f\d]{8})?$/
     puts "\tclaimed_id: >#{$1}<, role: >#{$2}<, auth: >#{$3}<"
     unless sender_valid && $1.to_i==sc.id
       err_response sc, orig_head, RESP_ID_INVALID
@@ -151,7 +148,7 @@ class D3ObyTCPServer
     end
     #receiver
     receiver = 's' if receiver.nil? || receiver.empty?
-    unless receiver=~/^(s|\d+(,\d+)*|a[+-]?)$/
+    unless receiver=~/^(s|h|o|a|\d+(,\d+)*)$/
       err_response sc, orig_head, RESP_HEAD_INVALID
       return
     end
@@ -160,41 +157,46 @@ class D3ObyTCPServer
     #####
     begin
       case receiver
-        when 's'
-          if internal_order(data, sc)
+        when 's' #to server
+          order_resp, msg = internal_order(data, sc)
+          unless order_resp
+            err_response sc, orig_head, "#{RESP_ORDER_FORBIDDEN}#{msg}"
+            return
+          end
+        when 'h' #to host only
+          @space.get_room(sc.host).host.post "[#{sc.id}]#{data}"
+        when 'o' #to every other in room
+          if sc.host==-1
+            err_response sc, orig_head, "#{RESP_MSG_INVALID}No room joined"
             return
           else
-            err_response sc, orig_head, RESP_ORDER_FORBIDDEN
-            return
+            resp = "[#{sc.id}]#{data}"
+            sc.room.each_guest {|g| g.post resp unless g==sc}
+            sc.room.host.post resp unless sc.host==0
           end
-        when 'h'
-          @space.get_room(sc.host).host.post "[#{sc.id}]#{data}"
-        when 'o'
-          resp = "[#{sc.id}]#{data}"
-          @space.get_room(sc.host).each_guest do |g|
-            next if g==sc
-            g.post resp
-          end
-        when 'a'
+        when 'a' #to all
           resp = "[#{sc.id}|#{sc.host}]#{data}"
           if can_over_room_reachability?
-            @space.each_conn {|c| c.post resp}
+            @space.each_conn {|c| c.post resp unless c==sc}
           else
-            @space.each_tramp {|c| c.post resp}
+            @space.each_tramp {|c| c.post resp unless c==sc}
           end
-        else
+        else #to specified connections
           ids = receiver.split(',').map{|id| id.to_i}
           resp = "[#{sc.id}|#{sc.host}]#{data}"
           ids.each do |id|
             conn = @space.get_conn id
             next if conn.nil?
-            next if !can_over_room_reachability? && conn.host!=-1 && conn.host!=sc.host
-            conn.post resp
+            same_room = ((conn.host==sc.host && conn.host>0) || conn.host==sc.id || conn.id==sc.host)
+            if same_room || can_over_room_reachability?
+              conn.post resp
+            end
           end
       end
       succes_response sc, orig_head, RESP_MSG_SERVED
     rescue Exception => e
-      err_response sc, orig_head, RESP_MSG_FAIL, e
+      err_response sc, orig_head, RESP_MSG_FAIL
+      puts >> "ERR IN RECEIVE : #{e.message}"+e.trace.join("\t\n")
     end
   end
 

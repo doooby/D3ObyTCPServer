@@ -1,13 +1,13 @@
 class AccessTrier
 
-  def initialize(max=5)
+  def initialize(max=10)
     @max_clients = max
     @clients = 0
   end
 
   def access(conn, data)
     if full?
-      false
+      return false, 'Too much clients already connected.'
     else
       @clients+=1
       true
@@ -16,6 +16,10 @@ class AccessTrier
 
   def full?
     @clients==@max_clients
+  end
+
+  def count
+    @clients
   end
 
 end

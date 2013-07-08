@@ -1,5 +1,5 @@
 class Room
-  attr_reader :host
+  attr_reader :host, :access_trier
 
   def initialize(host, access_trier)
     @host = host
@@ -7,12 +7,12 @@ class Room
     @access_trier = access_trier
   end
 
-  def has_guest(id)
+  def guest?(id)
     @guests.has_key? id
   end
 
   def get_guest(id)
-    @guests[:id]
+    @guests[id]
   end
 
   def each_guest(&block)
@@ -21,6 +21,10 @@ class Room
 
   def guests_count
     @guests.length
+  end
+
+  def attach(guest)
+    @guests[guest.id] = guest
   end
 
   def dettach(who)

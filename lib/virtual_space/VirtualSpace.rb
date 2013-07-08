@@ -14,6 +14,15 @@ class VirtualSpace
     @actual_count
   end
 
+  def get_conn(id)
+    return @tramp_conns[id] if @tramp_conns.has_key? id
+    return @rooms[id].host if @rooms.has_key? id
+    @rooms.each_value do |room|
+      next unless room.guest? id
+      return room.get_guest id
+    end
+  end
+
   def each_conn(&block)
     @tramp_conns.each_value {|c| block.call c}
     @room.each_value do |room|
@@ -22,25 +31,48 @@ class VirtualSpace
     end
   end
 
-  def each_tramp(&block)
-    @tramp_conns.each_value {|c| block.call c}
-  end
-
   def get_tramp(id)
     @tramp_conns[id]
   end
 
-  def get_conn(id)
-    @tramp_conns[id] if @tramp_conns.has_key? id
-    @rooms[id].host if @rooms.has_key? id
-    @rooms.each_value do |room|
-      next unless room.has_guest id
-      return room.get_guest id
-    end
+  def each_tramp(&block)
+    @tramp_conns.each_value {|c| block.call c}
   end
 
   def get_room(host_id)
     @rooms[host_id]
+  end
+
+  def each_room(&block)
+    @rooms.each_value {|r| block.call r}
+  end
+
+  def attach_host(host, access_trier)
+    #TODO to attach local hosts
+    host.id = take_next_id
+    @rooms[host.id] = Room.new host, access_trier
+    puts "Local host (#{id}) attached."
+  end
+
+  def regrade(conn, as, to_room=nil)
+    if conn.host==-1
+      @tramp_conns.delete conn.id
+    elsif conn.host == 0
+      raise 'Not implemented yet'
+    else
+      raise 'Not implemented yet'
+    end
+    case as
+      when 'h'
+        @rooms[conn.id] = conn.room
+        conn.host = 0
+      when 'g'
+        to_room.attach conn
+        conn.host = to_room.host.id
+      else
+        @tramp_conns[conn.id] = conn
+        conn.host = -1
+    end
   end
 
   ######################################################################################################################
@@ -53,9 +85,9 @@ class VirtualSpace
 
   def attach(socket)
     id = take_next_id
-    new_conn = Connection.new id, socket, self, @server
+    new_conn = Connection.new id, @server, socket
     @actual_count += 1
-    puts "Connection (#{id}) added - #{@actual_count}/#{@max_connections}."
+    puts "Connection (#{id}) attached - #{@actual_count}/#{@max_connections}."
     @server.abort_listenning if @actual_count==@max_connections
     @tramp_conns[id] = new_conn
   end
@@ -73,7 +105,7 @@ class VirtualSpace
         return
       else
         @rooms.each_value do |room|
-          next unless room.has_guest conn_id
+          next unless room.guest? conn_id
           conn = room.get_guest conn_id
         end
       end

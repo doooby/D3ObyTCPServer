@@ -25,6 +25,7 @@ class D3ObyTCPServer
     # S E T T I N G S ##################
     SET_OVER_ROOM_REACHABILITY = 0b1
     SET_TRAMP_ACCESS = 0b10
+    SET_HOST_ACCESS = 0b100
     ###################################
 
   end

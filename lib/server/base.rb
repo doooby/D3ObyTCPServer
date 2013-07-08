@@ -1,6 +1,7 @@
 require 'socket'
 require_relative 'static'
 require_relative 'helper'
+require_relative '../access/AccessTrier'
 
 class D3ObyTCPServer
   include D3ObyTCPServer::Static
@@ -19,13 +20,22 @@ class D3ObyTCPServer
   def set_up(**args)
     @sett = 0b0
 
-    ### možnost přístupu trampů
+    ### tramp access
     @tramp_access_trier = args[:tramp_access_trier]
     unless @tramp_access_trier.nil?
       raise 'err in set_up: tramp_access_treir is not AccessTrier class nor nil' unless @tramp_access_trier.is_a?(AccessTrier)
       @sett|=SET_TRAMP_ACCESS
     end
-    ## možnost posílat zprávy napříč místnostmi
+    ### remote host access
+    @host_access_trier = args[:host_access_trier]
+    unless @host_access_trier.nil?
+      raise 'err in set_up: host_access_treir is not AccessTrier class nor nil' unless @host_access_trier.is_a?(AccessTrier)
+      @sett|=SET_HOST_ACCESS
+    end
+    ### guest access trier - must be at least default one
+    @guest_access_trier = args[:guest_access_trier]
+    @guest_access_trier = AccessTrier.new if @guest_access_trier.nil?
+    ### možnost posílat zprávy napříč místnostmi
     @set|=SET_OVER_ROOM_REACHABILITY  unless args[:over_room_reachability]
 
 
@@ -45,11 +55,15 @@ class D3ObyTCPServer
   def stop
     return unless @started
     @listenning_thread.kill if @listenning_thread.alive?
-    @space.close_all
+    @space.deatch_all
     @socket.kill
     @listenning_thread.join if @listenning_thread.alive?
     @listenning_thread = nil
     @started = false
+  end
+
+  def add_host(host, access_trier)
+     #TODO
   end
 
   def running
@@ -102,6 +116,9 @@ class D3ObyTCPServer
   end
   def can_tramp_access?
     @sett&SET_TRAMP_ACCESS > 0
+    end
+  def can_host_access?
+    @sett&SET_HOST_ACCESS > 0
   end
 
 end
