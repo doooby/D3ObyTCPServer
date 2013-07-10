@@ -55,8 +55,8 @@ class D3ObyTCPServer
   def stop
     return unless @started
     @listenning_thread.kill if @listenning_thread.alive?
-    @space.deatch_all
-    @socket.kill
+    @space.dettach_all
+    @socket.close
     @listenning_thread.join if @listenning_thread.alive?
     @listenning_thread = nil
     @started = false

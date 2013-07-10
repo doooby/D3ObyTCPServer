@@ -13,7 +13,7 @@ server.start
 require 'shellwords'
 loop do
   begin
-  input = gets
+  input = $stdin.gets
   break if input.nil?
   args = Shellwords.shellwords input.strip!
   prikaz = args.shift

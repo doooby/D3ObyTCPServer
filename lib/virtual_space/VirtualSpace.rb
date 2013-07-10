@@ -25,7 +25,7 @@ class VirtualSpace
 
   def each_conn(&block)
     @tramp_conns.each_value {|c| block.call c}
-    @room.each_value do |room|
+    @rooms.each_value do |room|
       room.each_guest {|c| block.call c}
       block.call room.host
     end
@@ -117,7 +117,7 @@ class VirtualSpace
     @server.listen_for_connections if !@server.listenning && @actual_count<@max_connections
   end
 
-  def deatch_all
+  def dettach_all
     each_conn { |c| c.dettach }
     @actual_count = 0
     @rooms = {}

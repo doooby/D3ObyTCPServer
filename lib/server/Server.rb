@@ -175,7 +175,7 @@ class D3ObyTCPServer
             sc.room.host.post resp unless sc.host==0
           end
         when 'a' #to all
-          resp = "[#{sc.id}|#{sc.host}]#{data}"
+          resp = "[#{sc.id},#{sc.host}]#{data}"
           if can_over_room_reachability?
             @space.each_conn {|c| c.post resp unless c==sc}
           else
@@ -183,11 +183,11 @@ class D3ObyTCPServer
           end
         else #to specified connections
           ids = receiver.split(',').map{|id| id.to_i}
-          resp = "[#{sc.id}|#{sc.host}]#{data}"
+          resp = "[#{sc.id},#{sc.host}]#{data}"
           ids.each do |id|
             conn = @space.get_conn id
             next if conn.nil?
-            same_room = ((conn.host==sc.host && conn.host>0) || conn.host==sc.id || conn.id==sc.host)
+            same_room = ((conn.host==sc.host && conn.host!=0) || conn.host==sc.id || conn.id==sc.host)
             if same_room || can_over_room_reachability?
               conn.post resp
             end
