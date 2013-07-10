@@ -1,6 +1,6 @@
 # D3ObyTCPServer
 
-TODO: Write a gem description
+A simple TCP server made into ruby gem.
 
 ## Installation
 
@@ -18,7 +18,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+There's no yet since I'm only developing it
 
 ## Contributing
 
