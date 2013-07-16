@@ -54,7 +54,7 @@ class VirtualSpace
     puts "Local host (#{id}) attached."
   end
 
-  def regrade(conn, as, to_room=nil)
+  def transfer(conn, as, to_room=nil)
     if conn.host==-1
       @tramp_conns.delete conn.id
     elsif conn.host == 0
@@ -64,7 +64,8 @@ class VirtualSpace
     end
     case as
       when 'h'
-        @rooms[conn.id] = conn.room
+        @rooms[conn.id] = to_room
+        conn.room = to_room
         conn.host = 0
       when 'g'
         to_room.attach conn

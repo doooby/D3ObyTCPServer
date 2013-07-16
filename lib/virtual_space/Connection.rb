@@ -20,13 +20,7 @@ class Connection
   end
 
   def authorize!(proclaimed_key)
-    if proclaimed_key==@key
-      @authorized = true
-      true
-    else
-      @authorized = false
-      false
-    end
+    @authorized = proclaimed_key==@key
   end
 
   def authorized?
@@ -80,7 +74,7 @@ class Connection
         end
         break if Thread.current[:to_end]
         begin
-          @server.receive self, data
+          @server.process self, data
         rescue Exception => e
           $stderr.puts "Error #{e.class} while invocing on_recieve call(#{@id}): #{e.message}\n#{e.backtrace.join("\t\n")}."
         end
