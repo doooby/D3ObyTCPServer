@@ -2,6 +2,7 @@
 #require 'bundler/setup'
 require "#{Dir.getwd}/lib/d3oby_tcp_server.rb"
 require 'rspec'
+require 'timeout'
 
 RSpec.configure do |config|
   # some (optional) config here
@@ -43,20 +44,26 @@ def logg_in_as_host(socket)
   resp.map{|val| val.to_i}
 end
 
+def attach_local_host(server)
+  host = LocalHost.new server
+  host.access_trier = AccessTrier.new
+  server.space.attach_local_host host
+  host
+end
+
 def logg_in_as_guest(socket, host_id)
-  pending 'not implemented yet'
-  #socket.puts "[g#{host_id}]"
-  #resp = nil
-  #lambda {
-  #  Timeout::timeout(3) do
-  #    resp = socket.gets.strip
-  #  end
-  #}.should_not raise_error
-  #resp = resp.split('|')
-  #resp.shift.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
-  #resp[0].should_not be_nil
-  #resp[1].should_not be_nil
-  #resp.map{|val| val.to_i}
+  socket.puts "[g#{host_id}]"
+  resp = nil
+  lambda {
+    Timeout::timeout(3) do
+      resp = socket.gets.strip
+    end
+  }.should_not raise_error
+  resp = resp.split('|')
+  resp.shift.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
+  resp[0].should_not be_nil
+  resp[1].should_not be_nil
+  resp.map{|val| val.to_i}
 end
 
 ########################################################################################################################

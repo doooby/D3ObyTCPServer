@@ -14,6 +14,10 @@ class AccessTrier
     end
   end
 
+  def notice_disconection(count=1)
+    @clients-=count
+  end
+
   def full?
     return true if @max_clients==0
     @clients==@max_clients

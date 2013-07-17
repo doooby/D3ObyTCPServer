@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'timeout'
 
 describe 'Remote Host' do
 
@@ -30,11 +29,12 @@ describe 'Remote Host' do
   end
 
   it 'let guests join' do
-    host_socket = nil
-    lambda{host_socket = connect_socket}.should_not raise_error
-    host_id = logg_in_as_host host_socket
-    guest_socket = nil
-    lambda{guest_socket = connect_socket}.should_not raise_error
-    logg_in_as_guest guest_socket, host_id
+    pending 'not implemented'
+    #host_socket = nil
+    #lambda{host_socket = connect_socket}.should_not raise_error
+    #host_id = logg_in_as_host host_socket
+    #guest_socket = nil
+    #lambda{guest_socket = connect_socket}.should_not raise_error
+    #logg_in_as_guest guest_socket, host_id
   end
 end

@@ -2,21 +2,17 @@ require 'rspec'
 
 describe 'VirtualSpace functionalities' do
 
-  #before :all do
-  #  @server = D3ObyTCPServer.new
-  #  @server.start
-  #  @space = @server.space
+  #class Connection
+  #  def listen; end
   #end
   #
-  #after :all do
-  #  @server.stop
-  #end
-
-  #after :each do
-  #  @server.space.dettach_all
+  #before :all do
+  #  @server = D3ObyTCPServer.new
+  #  @space = @server.space
   #end
 
   ######################################################################################################################
 
-  #Actualy nothing to test, averything wil be teste during other tests ...
+  #Actualy nothing to test, everything wil be teste during other tests ...
+
 end

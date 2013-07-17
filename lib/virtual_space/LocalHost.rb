@@ -1,10 +1,10 @@
 require_relative 'Connection'
 
 class LocalHost < Connection
-
   undef_method :authorize!
   undef_method :listen
   undef_method :reconnect
+  attr_accessor :access_trier
 
   def initialize(server)
     @host = 0
@@ -18,7 +18,7 @@ class LocalHost < Connection
     true
   end
 
-  def dettach
+  def close
   end
 
   def post(data)

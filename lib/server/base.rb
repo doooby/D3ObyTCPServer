@@ -8,6 +8,7 @@ class D3ObyTCPServer
   include D3ObyTCPServer::Helper
 
   attr_reader :ip, :port
+  attr_reader :tramp_access_trier, :host_access_trier
 
   def initialize(**args)
     @started = false
@@ -19,6 +20,13 @@ class D3ObyTCPServer
 
   def set_up(**args)
     @sett = 0b0
+
+    ## IP
+    @ip = args[:ip]
+    @ip = 'localhost' unless @ip
+    ## PORT
+    @port = args[:port]
+    @port = '151515' unless @port
 
     ### tramp access
     @tramp_access_trier = args[:tramp_access_trier]
@@ -43,8 +51,6 @@ class D3ObyTCPServer
   def start
     return if @started
     puts 'Starting D3ObyTCPServer'
-    @ip = 'localhost'
-    @port = 151515
     @socket = TCPServer.new @ip, @port
     @socket.setsockopt Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1
     @started = true
@@ -59,10 +65,6 @@ class D3ObyTCPServer
     @listenning_thread.join if @listenning_thread.alive?
     @listenning_thread = nil
     @started = false
-  end
-
-  def add_host(host, access_trier)
-     #TODO
   end
 
   def running

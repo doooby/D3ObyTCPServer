@@ -55,7 +55,7 @@ describe 'Head' do
   end
 
   it 'should recognize response' do
-    head = @server.process_head '[1g:16846]'
+    head = @server.process_head '[11g:16846]'
     head.should be_valid
     head.injunction_id.should be 16846
     head.response?.should be_true

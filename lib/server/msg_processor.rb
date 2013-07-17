@@ -132,7 +132,7 @@ class D3ObyTCPServer
       if try_result
         conn.key = generate_access_key
         conn.authorize! conn.key
-        @space.transfer conn, 'h', Room.new(conn)
+        @space.transfer conn, 'h', Room.new(self, conn)
         conn.post "#{RESP_ACC_GRANTED}|#{conn.id}|#{conn.key}"
       else
         conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
@@ -145,15 +145,20 @@ class D3ObyTCPServer
       if room.nil?
         conn.post "#{RESP_ACC_DENIED}|No such room"
       else
-      #  try_result, msg = room.access_trier.access conn, data
-      #  if try_result
-      #    conn.key = generate_access_key
-      #    conn.authorize! conn.key
-      #    @space.transfer conn, 'g', room
-      #    conn.post "#{RESP_ACC_GRANTED}|#{conn.id}|#{conn.key}"
-      #  else
-      #    conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
-      #  end
+        if room.host.is_a? LocalHost
+          try_result, msg = room.host.access_trier.access conn, data
+          unless try_result
+            conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
+            return
+          end
+        else
+          try_result, msg = nil, nil
+          raise 'Not implemented yet'
+        end
+        conn.key = generate_access_key
+        conn.authorize! conn.key
+        @space.transfer conn, 'g', room
+        conn.post "#{RESP_ACC_GRANTED}|#{conn.id}|#{conn.key}"
       end
     end
   end

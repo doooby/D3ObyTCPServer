@@ -22,15 +22,6 @@ class D3ObyTCPServer
     RESP_MSG_FAIL = 'msg-fail'
     RESP_MSG_SERVED = 'msg-served'
 
-
-    #RESP_MSG_INVALID = '[msg-invalid]'
-
-    #RESP_ORDER_FORBIDDEN = '[order-forbidden]'
-    #RESP_HEAD_INVALID = '[head-invalid]'
-    #RESP_ROOM_INVALID = '[room-invalid]'
-    #RESP_ID_INVALID = '[id-invalid]'
-    #RESP_ID_AUTHORIZE= '[id-auth]'
-
     ###################################
 
     ####################################

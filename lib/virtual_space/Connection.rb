@@ -12,7 +12,6 @@ class Connection
     @socket = socket
     @server = server
     @authorized = false
-    listen
   end
 
   def info
@@ -38,7 +37,7 @@ class Connection
     #listen
   end
 
-  def dettach
+  def close
     @closing = true
     @socket.close unless @socket.nil? || @socket.closed?
     return if Thread.current==@thread
