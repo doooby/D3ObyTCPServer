@@ -29,5 +29,12 @@ describe 'Remote Host' do
     logg_in_as_host socket
   end
 
-  it 'let guests join'
+  it 'let guests join' do
+    host_socket = nil
+    lambda{host_socket = connect_socket}.should_not raise_error
+    host_id = logg_in_as_host host_socket
+    guest_socket = nil
+    lambda{guest_socket = connect_socket}.should_not raise_error
+    logg_in_as_guest guest_socket, host_id
+  end
 end

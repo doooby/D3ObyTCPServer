@@ -7,6 +7,9 @@ RSpec.configure do |config|
   # some (optional) config here
 end
 
+########################################################################################################################
+# C O N N E C T   &   L O G G   I N
+########################################################################################################################
 def connect_socket
   TCPSocket.new @server.ip, @server.port
 end
@@ -40,17 +43,25 @@ def logg_in_as_host(socket)
   resp.map{|val| val.to_i}
 end
 
-def post_and_receive(socket, data)
-  #socket.puts data
+def logg_in_as_guest(socket, host_id)
+  pending 'not implemented yet'
+  #socket.puts "[g#{host_id}]"
   #resp = nil
   #lambda {
   #  Timeout::timeout(3) do
   #    resp = socket.gets.strip
   #  end
   #}.should_not raise_error
-  #resp
+  #resp = resp.split('|')
+  #resp.shift.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
+  #resp[0].should_not be_nil
+  #resp[1].should_not be_nil
+  #resp.map{|val| val.to_i}
 end
 
+########################################################################################################################
+# S E N D I N G
+########################################################################################################################
 def receive_msg(socket)
   resp = nil
   lambda {
@@ -75,7 +86,7 @@ def receive_msg_from(socket, from, his_host, msg)
 end
 
 def send_and_get_served_response(socket, message)
-  raise 'Not implemented yet'
+  raise 'Not implemented'
   #socket.puts message
   #res = nil
   #lambda {
@@ -84,5 +95,17 @@ def send_and_get_served_response(socket, message)
   #  end
   #}.should_not raise_error
   #res.should eql D3ObyTCPServer::Static::RESP_MSG_SERVED
+end
+
+def post_and_receive(socket, data)
+  raise 'Not implemented'
+  #socket.puts data
+  #resp = nil
+  #lambda {
+  #  Timeout::timeout(3) do
+  #    resp = socket.gets.strip
+  #  end
+  #}.should_not raise_error
+  #resp
 end
 

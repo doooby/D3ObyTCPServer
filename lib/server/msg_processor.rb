@@ -141,10 +141,10 @@ class D3ObyTCPServer
                        #TODO reconnection process
       raise 'Not implemented yet'
     else #guest
-      #room = @space.get_room head.as[1..-1].to_i
-      #if room.nil?
-      #  conn.post "#{RESP_ACC_DENIED}|No such room"
-      #else
+      room = @space.get_room head.as[1..-1].to_i
+      if room.nil?
+        conn.post "#{RESP_ACC_DENIED}|No such room"
+      else
       #  try_result, msg = room.access_trier.access conn, data
       #  if try_result
       #    conn.key = generate_access_key
@@ -154,7 +154,7 @@ class D3ObyTCPServer
       #  else
       #    conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
       #  end
-      #end
+      end
     end
   end
 
