@@ -32,9 +32,6 @@ class D3ObyTCPServer
       raise 'err in set_up: host_access_treir is not AccessTrier class nor nil' unless @host_access_trier.is_a?(AccessTrier)
       @sett|=SET_HOST_ACCESS
     end
-    ### guest access trier - must be at least default one
-    @guest_access_trier = args[:guest_access_trier]
-    @guest_access_trier = AccessTrier.new if @guest_access_trier.nil?
     ### možnost posílat zprávy všem
     @sett|=SET_CAN_SEND_TO_ALL  if args[:can_send_to_all]
     ### možnost posílat zprávy napříč místnostmi

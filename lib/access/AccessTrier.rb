@@ -15,6 +15,7 @@ class AccessTrier
   end
 
   def full?
+    return true if @max_clients==0
     @clients==@max_clients
   end
 

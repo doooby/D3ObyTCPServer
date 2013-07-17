@@ -124,40 +124,37 @@ class D3ObyTCPServer
         conn.authorize! -1
         conn.post "#{RESP_ACC_GRANTED}|#{conn.id}"
       else
-        conn.post "#{RESP_ACC_DENIED}|#{msg}"
+        conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
       end
     elsif head.as=='h' #host
-                       #TODO connect as host remotely
-      raise 'not implemented yet'
-                      #try_result, msg = false, ''
-                      #try_result, msg = @host_access_trier.access conn, data if can_host_access?
-                      #if try_result
-                      #  conn.key = generate_access_key
-                      #  conn.authorize! conn.key
-                      #  conn.room = Room.new conn, @guest_access_trier
-                      #  @space.transfer conn, 'h'
-                      #  succes_response conn, orig_head, "#{RESP_ACC_GRANTED}#{conn.id}|#{conn.key}"
-                      #else
-                      #  err_response conn, orig_head, "#{RESP_ACC_DENIED}#{msg}"
-                      #end
+      try_result, msg = false, ''
+      try_result, msg = @host_access_trier.access conn, data if can_host_access?
+      if try_result
+        conn.key = generate_access_key
+        conn.authorize! conn.key
+        @space.transfer conn, 'h', Room.new(conn)
+        conn.post "#{RESP_ACC_GRANTED}|#{conn.id}|#{conn.key}"
+      else
+        conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
+      end
     elsif head.as=='r' #reconnection
                        #TODO reconnection process
       raise 'Not implemented yet'
     else #guest
-      room = @space.get_room head.as[1..-1].to_i
-      if room.nil?
-        conn.post "#{RESP_ACC_DENIED}|No such room"
-      else
-        try_result, msg = room.access_trier.access conn, data
-        if try_result
-          conn.key = generate_access_key
-          conn.authorize! conn.key
-          @space.transfer conn, 'g', room
-          conn.post "#{RESP_ACC_GRANTED}|#{conn.id}|#{conn.key}"
-        else
-          conn.post "#{RESP_ACC_DENIED}|#{msg}"
-        end
-      end
+      #room = @space.get_room head.as[1..-1].to_i
+      #if room.nil?
+      #  conn.post "#{RESP_ACC_DENIED}|No such room"
+      #else
+      #  try_result, msg = room.access_trier.access conn, data
+      #  if try_result
+      #    conn.key = generate_access_key
+      #    conn.authorize! conn.key
+      #    @space.transfer conn, 'g', room
+      #    conn.post "#{RESP_ACC_GRANTED}|#{conn.id}|#{conn.key}"
+      #  else
+      #    conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
+      #  end
+      #end
     end
   end
 

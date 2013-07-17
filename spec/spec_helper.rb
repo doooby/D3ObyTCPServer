@@ -13,26 +13,31 @@ end
 
 def logg_in_as_tramp(socket)
   socket.puts '[]'
+  resp = nil
   lambda {
     Timeout::timeout(3) do
-      socket.gets.strip.match /^([^\|]+)\|(\d+)$/
+      resp = socket.gets.strip
     end
   }.should_not raise_error
-  $1.should eql D3ObyTCPServer::Static::RESP_ACC_GRANTED
-  $2.should_not be_nil
-  $2.to_i
+  resp = resp.split('|')
+  resp.shift.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
+  resp[0].should_not be_nil
+  resp[0].to_i
 end
 
 def logg_in_as_host(socket)
-  #socket.puts '[h]'
-  #lambda {
-  #  Timeout::timeout(3) do
-  #    socket.gets.strip.match /^\[(.+)\](\d+\|\d+)?$/
-  #  end
-  #}.should_not raise_error
-  #$1.should eql D3ObyTCPServer::Static::RESP_ACC_GRANTED[1..-2]
-  #$2.should_not be_nil
-  #$2
+  socket.puts '[h]'
+  resp = nil
+  lambda {
+    Timeout::timeout(3) do
+      resp = socket.gets.strip
+    end
+  }.should_not raise_error
+  resp = resp.split('|')
+  resp.shift.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
+  resp[0].should_not be_nil
+  resp[1].should_not be_nil
+  resp.map{|val| val.to_i}
 end
 
 def post_and_receive(socket, data)

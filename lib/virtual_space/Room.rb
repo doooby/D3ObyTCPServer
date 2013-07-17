@@ -1,10 +1,9 @@
 class Room
-  attr_reader :host, :access_trier
+  attr_reader :host
 
-  def initialize(host, access_trier)
+  def initialize(host)
     @host = host
     @guests = {}
-    @access_trier = access_trier
   end
 
   def guest?(id)
