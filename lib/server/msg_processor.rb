@@ -45,8 +45,8 @@ class D3ObyTCPServer
     #send
     fail = false
     begin
-      recs = head.multi_receivers
-      if recs.nil?
+      ids = head.multi_receivers
+      if ids.nil?
         case head.receiver
           #to server
           when 's'
@@ -77,18 +77,18 @@ class D3ObyTCPServer
         end
         # to selected ids
       else
-        ids-=conn.id
+        ids-=[conn.id]
         if can_over_room_reachability?
           ids.each do |id|
             c = @space.get_conn id
-            next if conn.nil?
+            next unless c
             process_sending c, conn, head, data
           end
         else
           if conn.host==-1
             ids.each do |id|
               c = @space.get_tramp id
-              next if conn.nil?
+              next unless c
               process_sending c, conn, head, data
             end
           else
@@ -98,7 +98,7 @@ class D3ObyTCPServer
                 process_sending room.host, conn, head, data
               else
                 c = room.get_guest id
-                next if conn.nil?
+                next unless c
                 process_sending c, conn, head, data
               end
             end

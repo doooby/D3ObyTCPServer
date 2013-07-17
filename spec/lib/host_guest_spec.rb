@@ -20,13 +20,7 @@ describe 'Remote Host' do
 
   ######################################################################################################################
 
-  it 'creates a room' do
-    #socket = nil
-    #lambda{socket = connect_socket}.should_not raise_error
-    #logg_in_as_host socket
-  end
+  it 'creates a room'
 
-  it 'let guests join' do
-
-  end
+  it 'let guests join'
 end

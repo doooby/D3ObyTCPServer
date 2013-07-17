@@ -21,7 +21,7 @@ class DataHead
     @valid = false unless @receiver=~/^[shoa]$/ unless @multi_ids
 
     if data=~/^(\d+)([gh][a-f\d]{8}?)?$/
-      @sender = $1
+      @sender = $1.to_i
       if $2.nil?
         @as = ''
       else

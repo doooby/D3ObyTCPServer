@@ -36,9 +36,9 @@ class D3ObyTCPServer
     @guest_access_trier = args[:guest_access_trier]
     @guest_access_trier = AccessTrier.new if @guest_access_trier.nil?
     ### možnost posílat zprávy všem
-    @set|=SET_CAN_SEND_TO_ALL  unless args[:can_send_to_all]
+    @sett|=SET_CAN_SEND_TO_ALL  if args[:can_send_to_all]
     ### možnost posílat zprávy napříč místnostmi
-    @set|=SET_OVER_ROOM_REACHABILITY  unless args[:over_room_reachability]
+    @sett|=SET_OVER_ROOM_REACHABILITY  if args[:over_room_reachability]
 
 
   end
