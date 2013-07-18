@@ -6,11 +6,13 @@ class LocalHost < Connection
   undef_method :reconnect
   attr_accessor :access_trier
 
-  def initialize(server)
-    @host = 0
+  def initialize(server, &on_receive_block)
+    @host_id = 0
     @connected_at = Time.now
     @server = server
     @authorized = true
+    @connected = true
+    @on_receive = on_receive_block
   end
 
 
@@ -21,7 +23,12 @@ class LocalHost < Connection
   def close
   end
 
-  def post(data)
+  def post(data) #overriden method for posting straight from server; here host's receiving
+    @on_receive.call data
+  end
+
+  def resp(data) # for sending back
+    @server.process self, data
   end
 
 end

@@ -25,8 +25,8 @@ class DataHead
       if $2.nil?
         @as = ''
       else
-        @as = $2.slice! 0
-        @key = $2 unless $2.empty?
+        @as = $2[0]
+        @key = $2[1..0] if $2.length>1
       end
     else
       @valid = false

@@ -2,27 +2,13 @@ require_relative 'data_head'
 
 class D3ObyTCPServer
 
-
-  def process_head(data)
-    unless data=~/^\[([^\]]*)\]/
-      return nil
-    end
-    head = $1
-    data.slice!(0,head.length+2)
-    if head.match /^(|h|g\d+|r)$/
-      head = DataHead::NewConnectionHead.new $1
-    else
-      head = DataHead.new head
-    end
-    head
-  end
-
   def process(conn, data)
     head = process_head data
     if head.nil? || !head.valid?
       conn.post "[:#{head.injunction_id}]#{RESP_HEAD_INVALID}" if head.injunction?
       return
     end
+    data = data.force_encoding 'utf-8'
 
     if head.is_a? DataHead::NewConnectionHead
       process_new_connection conn, head, data
@@ -42,6 +28,24 @@ class D3ObyTCPServer
       return
     end
 
+    process_sending conn, head, data
+  end
+
+  def process_head(data)
+    unless data=~/^\[([^\]]*)\]/
+      return nil
+    end
+    head = $1
+    data.slice!(0,head.length+2)
+    if head.match /^(|h|g\d+|r)$/
+      head = DataHead::NewConnectionHead.new $1
+    else
+      head = DataHead.new head
+    end
+    head
+  end
+
+  def process_sending(conn, head, data)
     #send
     fail = false
     begin
@@ -52,25 +56,25 @@ class D3ObyTCPServer
           when 's'
             process_internal_injuction conn, head, data
           when 'h'
-            process_sending conn.room.host, conn, head, data unless conn.host<0
+            post conn.room.host, conn, head, data unless conn.host_id<1 || !conn.room.host.connected?
           when 'o'
-            unless conn.host==-1
+            unless conn.host_id==-1
               conn.room.each_guest do |g|
-                next if g==conn
-                process_sending g, conn, head, data
+                next if g==conn || !g.connected?
+                post g, conn, head, data
               end
             end
           when 'a'
             if can_send_to_all?
               if can_over_room_reachability?
                 @space.each_conn do |c|
-                  next if c==conn
-                  process_sending c, conn, head, data
+                  next if c==conn || !c.authorized? || !c.connected?
+                  post c, conn, head, data
                 end
               else
                 @space.each_tramp do |c|
-                  next if c==conn
-                  process_sending c, conn, head, data
+                  next if c==conn || !c.authorized? || !c.connected?
+                  post c, conn, head, data
                 end
               end
             end
@@ -81,25 +85,25 @@ class D3ObyTCPServer
         if can_over_room_reachability?
           ids.each do |id|
             c = @space.get_conn id
-            next unless c
-            process_sending c, conn, head, data
+            next unless c && c.connected?
+            post c, conn, head, data
           end
         else
-          if conn.host==-1
+          if conn.host_id==-1
             ids.each do |id|
               c = @space.get_tramp id
-              next unless c
-              process_sending c, conn, head, data
+              next unless c && c.connected?
+              post c, conn, head, data
             end
           else
             room = conn.room
             ids.each do |id|
-              if conn.host==id
-                process_sending room.host, conn, head, data
+              if conn.host_id==id
+                post room.host, conn, head, data if room.host.connected?
               else
                 c = room.get_guest id
-                next unless c
-                process_sending c, conn, head, data
+                next unless c && c.connected?
+                post c, conn, head, data
               end
             end
           end
@@ -113,7 +117,6 @@ class D3ObyTCPServer
         conn.post "[#{"<#{head.receiver}" if head.backward?}:#{head.injunction_id}]#{fail ? RESP_MSG_FAIL : RESP_MSG_SERVED}"
       end
     end
-
   end
 
   def process_new_connection(conn, head, data)
@@ -138,8 +141,34 @@ class D3ObyTCPServer
         conn.post "#{RESP_ACC_DENIED}#{'|'+msg unless msg.nil?}"
       end
     elsif head.as=='r' #reconnection
-                       #TODO reconnection process
-      raise 'Not implemented yet'
+      proclaimed_id, proclaimed_host, proclaimed_key = data.split('|')
+      proclaimed_conn = nil
+      room = nil
+      if proclaimed_id && proclaimed_host && proclaimed_key
+        if proclaimed_host=='0'
+          room = @space.get_room proclaimed_id.to_i
+          proclaimed_conn = room.host if room
+        else
+          room = @space.get_room proclaimed_host.to_i
+          proclaimed_conn = room.get_guest proclaimed_id.to_i
+        end
+      end
+      if proclaimed_conn && proclaimed_conn.key==proclaimed_key
+        conn.id = proclaimed_conn.id
+        conn.key = proclaimed_conn.key
+        conn.host_id = proclaimed_conn.host_id
+        conn.room = proclaimed_conn.room
+        conn.authorize! proclaimed_key
+        if proclaimed_host=='0'
+          room.host = conn
+        else
+          room.dettach proclaimed_conn
+          room.attach conn
+        end
+        conn.post "#{RESP_ACC_GRANTED}"
+      else
+        conn.post "#{RESP_ACC_DENIED}"
+      end
     else #guest
       room = @space.get_room head.as[1..-1].to_i
       if room.nil?
@@ -167,9 +196,9 @@ class D3ObyTCPServer
     internal_injuction data, conn
   end
 
-  def process_sending(to, conn, head, data)
+  def post(to, conn, head, data)
     #TODO for injunction make more friendly (timeout and so on)
-    to_post = "[#{conn.id}|#{conn.host}"
+    to_post = "[#{conn.id}|#{conn.host_id}"
     to_post+="!#{head.injunction_id}" if head.injunction?
     to_post+=":#{head.injunction_id}" if head.response?
     to.post to_post+']'+data

@@ -29,7 +29,7 @@ class Room
 
   def dettach(who)
     who = who.id if who.is_a? Connection
-    @guests[who] = nil
+    @guests.delete who
   end
 
 

@@ -1,21 +1,22 @@
 require 'socket'
 
 class Connection
-  attr_accessor :id, :host, :key, :room
+  attr_accessor :id, :host_id, :key, :room
   attr_reader :connected_at
 
   def initialize(id, server, socket)
     @id = id
-    @host = -1
+    @host_id = -1
     @key = -1
     @connected_at = Time.now
     @socket = socket
     @server = server
     @authorized = false
+    @connected = true
   end
 
   def info
-    "#{'%3s'%@id}: h=#{'%3s'%@host} | key=#{'%8s'%@key} | auth=#{authorized? ? 1 : 0} | at=#{@connected_at.strftime '%H:%M:%S'}"
+    "#{'%3s'%@id}: h=#{'%3s'%@host_id} | key=#{'%8s'%@key} | auth=#{authorized? ? 1 : 0} | at=#{@connected_at.strftime '%H:%M:%S'}"
   end
 
   def authorize!(proclaimed_key)
@@ -31,7 +32,15 @@ class Connection
     other.id==@id
   end
 
-  def reconnect(socket)
+  def disconected
+    @connected = false
+  end
+
+  def connected?
+    @connected
+  end
+
+  def reconnect(conn)
     raise 'Not implemented yet IN Connection#reconnect'
     #@socket = socket
     #listen
@@ -68,7 +77,11 @@ class Connection
           unless @closing
             $stderr.puts "Unknown error #{e.class} while recieving (#{@id}): #{e.message}." unless e.class==IOError
             @server.space.disconnection_notice self
-            @socket.close unless @socket.nil? || @socket.closed?
+            unless @socket.nil? || @socket.closed?
+              @socket.close
+              @socket = nil
+              @authorized = false
+            end
           end
         end
         break if Thread.current[:to_end]

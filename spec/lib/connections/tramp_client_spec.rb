@@ -20,7 +20,7 @@ describe 'Tramp client' do
 
   ######################################################################################################################
 
-  it 'logg in as tramp' do
+  it 'loggs in as tramp' do
     count = @server.space.count
     socket = nil
     lambda{socket = connect_socket}.should_not raise_error

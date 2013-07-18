@@ -51,7 +51,11 @@ class D3ObyTCPServer
   def start
     return if @started
     puts 'Starting D3ObyTCPServer'
-    @socket = TCPServer.new @ip, @port
+    begin
+      @socket = TCPServer.new @ip, @port
+    rescue Errno::EADDRINUSE
+      raise "Port #{@port} on IP #{@ip} is already in use."
+    end
     @socket.setsockopt Socket::SOL_SOCKET, Socket::SO_REUSEADDR, 1
     @started = true
     listen_for_connections

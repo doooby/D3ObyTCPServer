@@ -41,11 +41,11 @@ def logg_in_as_host(socket)
   resp.shift.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
   resp[0].should_not be_nil
   resp[1].should_not be_nil
-  resp.map{|val| val.to_i}
+  [resp[0].to_i, resp[1]]
 end
 
-def attach_local_host(server)
-  host = LocalHost.new server
+def attach_local_host(server, &on_receive_block)
+  host = LocalHost.new server, &on_receive_block
   host.access_trier = AccessTrier.new
   server.space.attach_local_host host
   host
@@ -63,7 +63,18 @@ def logg_in_as_guest(socket, host_id)
   resp.shift.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
   resp[0].should_not be_nil
   resp[1].should_not be_nil
-  resp.map{|val| val.to_i}
+  [resp[0].to_i, resp[1]]
+end
+
+def reconnect(socket, id, host, key)
+  socket.puts "[r]#{id}|#{host}|#{key}"
+  resp = nil
+  lambda {
+    Timeout::timeout(3) do
+      resp = socket.gets.strip
+    end
+  }.should_not raise_error
+  resp.should == D3ObyTCPServer::Static::RESP_ACC_GRANTED
 end
 
 ########################################################################################################################
@@ -89,7 +100,7 @@ def receive_msg_from(socket, from, his_host, msg)
   }.should_not raise_error
   $1.to_i.should == from
   $2.should == his_host
-  resp.should == msg
+  resp.force_encoding('utf-8').should == msg
 end
 
 def send_and_get_served_response(socket, message)

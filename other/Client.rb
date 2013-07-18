@@ -3,12 +3,12 @@ require 'timeout'
 require_relative '../lib/server/static'
 
 class Client
-  attr_reader :id, :key, :host, :waiting_resp, :socket, :listener
+  attr_reader :id, :key, :host_id, :waiting_resp, :socket, :listener
 
   def initialize(**args)
     @id = 0
     @key = -1
-    @host = -1
+    @host_id = -1
     @waiting_resp = false
 
     #server ip
@@ -38,9 +38,9 @@ class Client
       @id = @id.to_i
       @as = as
       if @as=='h'
-        @host = 0
+        @host_id = 0
       elsif @as=~/g(\d*)/
-        @host = $1.to_i
+        @host_id = $1.to_i
         @as = 'g'
       end
       listen

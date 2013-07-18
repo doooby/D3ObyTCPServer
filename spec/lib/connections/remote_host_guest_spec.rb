@@ -28,7 +28,7 @@ describe 'Remote Host' do
     logg_in_as_host socket
   end
 
-  it 'let guests join' do
+  it 'lets guests join' do
     pending 'not implemented'
     #host_socket = nil
     #lambda{host_socket = connect_socket}.should_not raise_error

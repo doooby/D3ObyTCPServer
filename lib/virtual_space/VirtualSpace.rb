@@ -55,8 +55,6 @@ class VirtualSpace
     @rooms.each_value {|r| block.call r}
   end
 
-
-
   ######################################################################################################################
 
   def attach(socket)
@@ -70,6 +68,7 @@ class VirtualSpace
   end
 
   def attach_local_host(host)
+    raise 'host not inherited from LocalHost' unless host.is_a? LocalHost
     host.id = take_next_id
     host.room = Room.new self, host
     @rooms[host.id] = host.room
@@ -129,9 +128,9 @@ class VirtualSpace
   end
 
   def transfer(conn, as, to_room=nil)
-    if conn.host==-1
+    if conn.host_id==-1
       @tramp_conns.delete conn.id
-    elsif conn.host == 0
+    elsif conn.host_id == 0
       raise 'Not implemented yet'
     else
       raise 'Not implemented yet'
@@ -140,19 +139,19 @@ class VirtualSpace
       when 'h'
         @rooms[conn.id] = to_room
         conn.room = to_room
-        conn.host = 0
+        conn.host_id = 0
       when 'g'
         to_room.attach conn
-        conn.host = to_room.host.id
+        conn.host_id = to_room.host.id
         conn.room = to_room
       else
         @tramp_conns[conn.id] = conn
-        conn.host = -1
+        conn.host_id = -1
     end
   end
 
   def disconnection_notice(conn)
-    dettach conn
+    conn.disconected
   end
 
 end
