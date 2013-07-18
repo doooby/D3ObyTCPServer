@@ -20,6 +20,26 @@ Or install it yourself as:
 
 (still in developement)
 
+Head of message must has a form:
+```ruby
+#client to server
+'[]'    #logg in as a tramp
+'[h]'   #logg in as a host of a room
+'[g15]' #logg in as host into the room 15 (host's id)
+
+'[1>2]msg'      #msg as client 1 (only secondary identification purpouse) to client 2
+'[1>2,15,3]msg' #msg to clients 2,15,3
+'[1>s]msg'      #msg to server (internal - not used yet)
+'[1>h]msg'      #msg to host of room (only works within the room)
+'[1>o]msg'      #msg to all other guests within the room (not self neither host)
+'[1>a]msg'      #msg to all. aply can_send_to_all and over_room_reachability settings here
+
+#from server to client
+'[1|-1]msg' #msg from a tramp with id 1 
+'[2|0]msg'  #msg from a host with id 2 
+'[3|2]msg'  #msg from a guest with id 1 from room 2
+```
+
 ###Tramp-only server (v0.2)
 Run a server as it is within a gem. Though you may wanth to customize a trier by inheriting from a AccessTrier class.
 ```ruby
@@ -50,9 +70,9 @@ server.set_up can_send_to_all: true
 #client in ruby code
 # ...
 socket.puts "[#{id}>a]Can anybody hear me?"
-response = socket.gets # '[12|-]Hello? Who are you?'
-response = socket.gets # '[16|-]What do you wnath, Garry? I am bussy..'
-response = socket.gets # '[5|-]I can hear you! Can you hear me?'
+response = socket.gets # '[12|-1]Hello? Who are you?'
+response = socket.gets # '[16|-1]What do you wnath, Garry? I am bussy..'
+response = socket.gets # '[5|-1]I can hear you! Can you hear me?'
 ```
 
 ###Remote-hosted server (since v0.3)
@@ -69,7 +89,7 @@ On client you need to implement a tcp socket with a-like client and a host logic
 ```
 ####2) Host as a stand-alone entity:
 In this case, the stan-alone host (aka a separate room with guests in it) needs to implement some custom logic of responding for requests. Intedet as a processing point for resending message to all guests within room or anything else.
-(A ruby example what would a chat a-like app look like)
+(A ruby example what would a chat a-like app look like inside)
 ```ruby
 host_socket = TCPSocket.new ip, port
 host_socket.puts '[h]' #logg in
@@ -80,14 +100,18 @@ response, client1_id, client1_key = client1_socket.gets.split '|' #client1_id = 
 client1_socket.puts '[5>h]Hi everyone!'
 #... 
 host_sokcet.gets # '[5|3]Hi everyone!'
-#    given host simply resends it to all guests
+#    given host simply resends it to all guests:
 host_socket.puts '[3>o]Hi everyone!'
 #... 
-#    everybody within the same room (same host)
+#    everybody within the same room (same host) gets this:
 #'[3|0]Hi everyone!'
 ```
 
 ###Local-hosted server (v0.2)
+In this scenario, host is a custom implemented class on the server side (derived from a LocalHost). The thing is, that that server do not resends communication to and from host via socket, but processes it directly. Local host has to implement the same receiving head format though. Such a host can be attached to the server like this:
+```ruby
+server.space.attach_local_host host #and guests can logg in to that hosted room
+```
 
 ## Contributing
 
