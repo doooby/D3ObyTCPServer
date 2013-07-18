@@ -13,7 +13,7 @@ version 0.1 features:
 version 0.2 features:
   - server can set up: ip, port, tramp and host accessTriers, can_send_to_all and over_room_reachability
   + head of message to process it
-  ! hosts and guests can reconect thanks to key identification
+  + lcoal hosts and guests can reconnect thanks to key identification
   - connections can be transfered between types (guest, host, tramps)
   ! only authorized tramps can be processed (not count dettaching)
 
@@ -21,7 +21,7 @@ version 0.2 features:
   + tramp can send message to all others, to exact other
   + remote host accessible via customizable accessTrier
   - host hosts a room to witch guests may logg in
-  - within room message can be sent to either all guests or host
+  + within room message can be sent to either all guests or host
   + local hosts can let in guests via their custom Trier
 
 version 0.3 features:
@@ -29,5 +29,5 @@ version 0.3 features:
 
   ! authentification timeouts (auth. request stands for a 'ping' ensurance of active connection)
   ! message from client can be injuncioned with a injunction_id and may return as timeouted
-  ! remote host can let in guests
+  ! remote host can let in guests and can reconnect itslef
 

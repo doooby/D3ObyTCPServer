@@ -29,8 +29,6 @@ describe 'Local Host' do
     guest_socket = nil
     lambda{guest_socket = connect_socket}.should_not raise_error
     id, key = logg_in_as_guest guest_socket, host.id
-    id.should_not be_nil
-    key.should_not be_nil
   end
 
   it 'receives from a guest' do
@@ -39,8 +37,6 @@ describe 'Local Host' do
     guest_socket = nil
     lambda{guest_socket = connect_socket}.should_not raise_error
     id, key = logg_in_as_guest guest_socket, host.id
-    id.should_not be_nil
-    key.should_not be_nil
     guest_socket.puts "[#{id}g>h]'brý den"
     sleep 0.1
     @host_res.should == "[#{id}|#{host.id}]'brý den"
@@ -59,16 +55,12 @@ describe 'Local Host' do
     receive_msg_from guest2_socket, host.id, '0', 'košilečku vila'
   end
 
-  it 'receives from guest even after its reconnection' do
+  it 'communicates with guest even after its reconnection' do
     @host_res = nil
     host = attach_local_host(@server) {|data| @host_res = data}
     guest_socket = nil
     lambda{guest_socket = connect_socket}.should_not raise_error
     id, key = logg_in_as_guest guest_socket, host.id
-    id.should_not be_nil
-    key.should_not be_nil
-    host.resp "[#{host.id}>o]košilečku vila"
-    receive_msg_from guest_socket, host.id, '0', 'košilečku vila'
     guest_socket.close
     sleep 0.1
     lambda{guest_socket = connect_socket}.should_not raise_error
@@ -76,5 +68,8 @@ describe 'Local Host' do
     guest_socket.puts "[#{id}g>h]'brý den"
     sleep 0.1
     @host_res.should == "[#{id}|#{host.id}]'brý den"
+    host.resp "[#{host.id}>#{id}]košilečku vila"
+    receive_msg_from guest_socket, host.id, '0', 'košilečku vila'
   end
+
 end
