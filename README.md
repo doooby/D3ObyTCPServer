@@ -1,6 +1,6 @@
 # D3ObyTCPServer
 
-A simple TCP server made into ruby gem.
+A simple TCP server made into a ruby gem.
 
 ## Installation
 
@@ -12,7 +12,7 @@ Gem name:
 
 (still in developement)
 
-Head of message must has a form:
+The head of a message must has a form:
 ```ruby
 #client to server
 '[]'    #logg in as a tramp
@@ -34,8 +34,8 @@ Head of message must has a form:
 '[3|2]msg'  #msg from a guest with id 1 from room 2
 ```
 
-###Tramp-only server (v0.2)
-Run a server as it is within a gem. Though you may wanth to customize a trier by inheriting from a AccessTrier class.
+###1)Tramp-only server (v0.2)
+Run a server as it is within the gem. Though you may wanth to customize the trier by inheriting from a AccessTrier class.
 ```ruby
 server = D3ObyTCPServer.new tramp_access_trier: AccessTrier.new
 server.start
@@ -69,14 +69,14 @@ response = socket.gets # '[16|-1]What do you wnath, Garry? I am bussy..'
 response = socket.gets # '[5|-1]I can hear you! Can you hear me?'
 ```
 
-###Remote-hosted server (since v0.3)
-Run a server as it is within a gem. Though you may wanth to customize a trier by inheriting from a AccessTrier class.
+###2)Remote-hosted server (since v0.3)
+Run a server as it is within the gem. Though you may wanth to customize a trier by inheriting from a AccessTrier class.
 ```ruby
 server = D3ObyTCPServer.new host_access_trier: AccessTrier.new
 server.start
 ```
 On client you need to implement a tcp socket with a-like client and a host logic. Guest connection is processed by a remote host via ijuncted communication. The convenience of this approach is that all host-guest logic is implemented at your own, what may be a whatever application with whatever technology supporting TCP/IP Sockets.
-####1) Host-client and other clients:
+####a) Host-client and other clients:
 (A ruby example what would a chat a-like app look like inside)
 ```ruby
 host_socket = TCPSocket.new ip, port
@@ -87,7 +87,7 @@ host_socket.puts '[3h>o]' #every other
 client_socket.puts '[4g>o]' #every other guest
 client_socket.puts '[4g>h]' #and to host - since he is just another client
 ```
-####2) Host as a stand-alone entity:
+####b) Host as a stand-alone entity:
 In this case, the stan-alone host needs to implement some custom logic of responding to requests. Intedet as a processing point for anything desired from a host.
 (A ruby example)
 ```ruby
@@ -107,7 +107,7 @@ host_socket.puts '[3h>o]Hi everyone!'
 #'[3|0]Hi everyone!'
 ```
 
-###Local-hosted server (v0.2)
+###3)Local-hosted server (v0.2)
 In this scenario, host is a custom implemented class on the server side (derived from a LocalHost). The thing is, that that server do not resends communication to and from host via socket, but processes it directly. Local host has to implement the same receiving head format though. Such a host can be attached to the server like this:
 ```ruby
 server.space.attach_local_host host #and guests can logg in to that hosted room
