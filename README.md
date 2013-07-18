@@ -4,17 +4,9 @@ A simple TCP server made into ruby gem.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Gem name:
 
-    gem 'D3ObyTCPServer'
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install D3ObyTCPServer
+    gem 'd3oby_tcp_server'
 
 ## Usage
 
@@ -27,11 +19,13 @@ Head of message must has a form:
 '[h]'   #logg in as a host of a room
 '[g15]' #logg in as host into the room 15 (host's id)
 
-'[1>2]msg'      #msg as client 1 (only secondary identification purpouse) to client 2
+'[1>2]msg'      #msg as tramp client 1 (only secondary identification purpouse) to client 2
+'[3h>22]msg'    #h is neccessary - otherwise won't be served; client is a host
+'[2g>22]msg'    #g is neccessary - otherwise won't be served; client is a guest
 '[1>2,15,3]msg' #msg to clients 2,15,3
 '[1>s]msg'      #msg to server (internal - not used yet)
-'[1>h]msg'      #msg to host of room (only works within the room)
-'[1>o]msg'      #msg to all other guests within the room (not self neither host)
+'[2g>h]msg'      #msg to host of room (only works within the room)
+'[2g>o]msg'      #msg to all other guests within the room (not self neither host)
 '[1>a]msg'      #msg to all. aply can_send_to_all and over_room_reachability settings here
 
 #from server to client
@@ -82,14 +76,20 @@ server = D3ObyTCPServer.new host_access_trier: AccessTrier.new
 server.start
 ```
 On client you need to implement a tcp socket with a-like client and a host logic. Guest connection is processed by a remote host via ijuncted communication. The convenience of this approach is that all host-guest logic is implemented at your own, what may be a whatever application with whatever technology supporting TCP/IP Sockets.
-####1) Hosting client and clients:
-(A ruby example)
+####1) Host-client and other clients:
+(A ruby example what would a chat a-like app look like inside)
 ```ruby
-
+host_socket = TCPSocket.new ip, port
+host_socket.puts '[h]' #logg in
+response, host_id, host_key = host_socket.gets.split '|' #host_id = 3
+host_socket.puts '[3h>o]' #every other
+#...
+client_socket.puts '[4g>o]' #every other guest
+client_socket.puts '[4g>h]' #and to host - since he is just another client
 ```
 ####2) Host as a stand-alone entity:
-In this case, the stan-alone host (aka a separate room with guests in it) needs to implement some custom logic of responding for requests. Intedet as a processing point for resending message to all guests within room or anything else.
-(A ruby example what would a chat a-like app look like inside)
+In this case, the stan-alone host needs to implement some custom logic of responding to requests. Intedet as a processing point for anything desired from a host.
+(A ruby example)
 ```ruby
 host_socket = TCPSocket.new ip, port
 host_socket.puts '[h]' #logg in
@@ -97,11 +97,11 @@ response, host_id, host_key = host_socket.gets.split '|' #host_id = 3
 #...
 client1_socket.puts '[g3]' #logg in as a guest of host with id 3
 response, client1_id, client1_key = client1_socket.gets.split '|' #client1_id = 5
-client1_socket.puts '[5>h]Hi everyone!'
+client1_socket.puts '[5g>h]Hi everyone!'
 #... 
 host_sokcet.gets # '[5|3]Hi everyone!'
 #    given host simply resends it to all guests:
-host_socket.puts '[3>o]Hi everyone!'
+host_socket.puts '[3h>o]Hi everyone!'
 #... 
 #    everybody within the same room (same host) gets this:
 #'[3|0]Hi everyone!'
