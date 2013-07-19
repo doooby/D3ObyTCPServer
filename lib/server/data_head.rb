@@ -55,7 +55,7 @@ class DataHead
 
   def multi_receivers
     return nil unless @multi_ids
-    @receiver.split(',').map{|id| id.to_i}.uniq
+    @receiver.split(',').map{|id| id.to_i}.uniq - [@sender]
   end
 
   class NewConnectionHead < self

@@ -56,11 +56,14 @@ class D3ObyTCPServer
           when 's'
             process_internal_injuction conn, head, data
           when 'h'
-            post conn.room.host, conn, head, data unless conn.host_id<1 || !conn.room.host.connected?
+            host = conn.room.host
+            if conn.host_id>0 && host.connected? && host.authorized?
+              post host, conn, head, data
+            end
           when 'o'
             unless conn.host_id==-1
               conn.room.each_guest do |g|
-                next if g==conn || !g.connected?
+                next unless g!=conn && g.connected? && g.authorized?
                 post g, conn, head, data
               end
             end
@@ -68,12 +71,12 @@ class D3ObyTCPServer
             if can_send_to_all?
               if can_over_room_reachability?
                 @space.each_conn do |c|
-                  next if c==conn || !c.authorized? || !c.connected?
+                  next unless c!=conn && c.connected? && c.authorized?
                   post c, conn, head, data
                 end
               else
                 @space.each_tramp do |c|
-                  next if c==conn || !c.authorized? || !c.connected?
+                  next unless c!=conn && c.connected? && c.authorized?
                   post c, conn, head, data
                 end
               end
@@ -81,28 +84,28 @@ class D3ObyTCPServer
         end
         # to selected ids
       else
-        ids-=[conn.id]
         if can_over_room_reachability?
           ids.each do |id|
             c = @space.get_conn id
-            next unless c && c.connected?
+            next unless c && c.connected? && c.authorized?
             post c, conn, head, data
           end
         else
           if conn.host_id==-1
             ids.each do |id|
               c = @space.get_tramp id
-              next unless c && c.connected?
+              next unless c && c.connected? && c.authorized?
               post c, conn, head, data
             end
           else
             room = conn.room
+            host = room.host
             ids.each do |id|
               if conn.host_id==id
-                post room.host, conn, head, data if room.host.connected?
+                post host, conn, head, data if host.connected? && host.authorized?
               else
                 c = room.get_guest id
-                next unless c && c.connected?
+                next unless c && c.connected? && c.authorized?
                 post c, conn, head, data
               end
             end
@@ -114,7 +117,7 @@ class D3ObyTCPServer
       fail = true
     ensure
       if head.injunction? || head.response?
-        conn.post "[#{"<#{head.receiver}" if head.backward?}:#{head.injunction_id}]#{fail ? RESP_MSG_FAIL : RESP_MSG_SERVED}"
+        conn.post "[#{">#{head.receiver}" if head.backward?}:#{head.injunction_id}]#{fail ? RESP_MSG_FAIL : RESP_MSG_SERVED}"
       end
     end
   end
@@ -197,6 +200,7 @@ class D3ObyTCPServer
   end
 
   def post(to, conn, head, data)
+    return unless to.authorized?
     #TODO for injunction make more friendly (timeout and so on)
     to_post = "[#{conn.id}|#{conn.host_id}"
     to_post+="!#{head.injunction_id}" if head.injunction?

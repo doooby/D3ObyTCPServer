@@ -15,12 +15,12 @@ version 0.2 features:
   + head of message to process it
   + lcoal hosts and guests can reconnect thanks to key identification
   - connections can be transfered between types (guest, host, tramps)
-  ! only authorized tramps can be processed (not count dettaching)
+  - only authorized tramps can be processed (not count dettaching)
 
   + tramp accessible via customizable accessTriers
   + tramp can send message to all others, to exact other
   + remote host accessible via customizable accessTrier
-  - host hosts a room to witch guests may logg in
+  + host hosts a room to witch guests may logg in
   + within room message can be sent to either all guests or host
   + local hosts can let in guests via their custom Trier
 
