@@ -15,7 +15,7 @@ describe 'Tramp client' do
   end
 
   after :each do
-    @server.space.dettach_all
+    @server.space.detach_all
   end
 
   ######################################################################################################################

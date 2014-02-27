@@ -15,7 +15,7 @@ version 0.2 features:
   + head of message to process it
   + lcoal hosts and guests can reconnect thanks to key identification
   - connections can be transfered between types (guest, host, tramps)
-  - only authorized tramps can be processed (not count dettaching)
+  - only authorized tramps can be processed (not count detaching)
 
   + tramp accessible via customizable accessTriers
   + tramp can send message to all others, to exact other
@@ -24,10 +24,14 @@ version 0.2 features:
   + within room message can be sent to either all guests or host
   + local hosts can let in guests via their custom Trier
 
-version 0.3 features:
+version 0.3 - refactoring the code
+  - review funcitonalities
+  - refactor whole core
+  ! rebuild tests
+
+version 0.4 features:
   ! loggs into a file; errors are even holded as variable in server (for debugging) for max count 20 lasts
 
   ! authentification timeouts (auth. request stands for a 'ping' ensurance of active connection)
   ! message from client can be injuncioned with a injunction_id and may return as timeouted
   ! remote host can let in guests and can reconnect itslef
-

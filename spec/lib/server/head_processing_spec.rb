@@ -1,7 +1,7 @@
 require 'rspec'
 
 RSpec::Matchers.define :be_valid do
-  match {|actual| actual.valid?}
+  match {|actual| actual.valid_format?}
 end
 
 describe 'New connection head' do
@@ -12,21 +12,21 @@ describe 'New connection head' do
   it 'for tramp' do
     head = @server.process_head '[]'
     head.should be_valid
-    head.should be_a_kind_of DataHead::NewConnectionHead
+    head.should be_a_kind_of NewConnectionHead
     head.as.should == ''
   end
 
   it 'for host' do
     head = @server.process_head '[h]'
     head.should be_valid
-    head.should be_a_kind_of DataHead::NewConnectionHead
+    head.should be_a_kind_of NewConnectionHead
     head.as.should == 'h'
   end
 
   it 'for tramp' do
     head = @server.process_head '[g879]'
     head.should be_valid
-    head.should be_a_kind_of DataHead::NewConnectionHead
+    head.should be_a_kind_of NewConnectionHead
     head.as.should == 'g879'
   end
 
