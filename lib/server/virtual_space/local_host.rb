@@ -1,4 +1,3 @@
-require_relative 'Connection'
 
 class LocalHost < Connection
   #undef_method :authorize!

@@ -1,7 +1,5 @@
 class D3ObyTCPServer
 
-  VERSION = "0.3.0"
-
   ####################################
   # R E S P O N S E S ################
   RESP_HEAD_INVALID = 'head-invalid'
